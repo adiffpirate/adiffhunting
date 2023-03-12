@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: subenum-passive
+  name: subenum-passive
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subenum-passive
+  template:
+    metadata:
+      labels:
+        app: subenum-passive
+    spec:
+      containers:
+        - name: subenum-passive
+          image: adiffhunting/subenum-passive:84ccfa7
+          env:
+            - name: DEBUG
+              value: "false"
+            - name: DGRAPH_ALPHA_HOST
+              value: "dgraph-alpha.db"
+            - name: DGRAPH_ALPHA_HTTP_PORT
+              value: "8080"
+            - name: CHAOS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: subenum-passive
+                  key: chaos-api-key
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              memory: 256Mi

@@ -1,0 +1,72 @@
+.: &default
+  project: default
+  autoSync:
+    enabled: true
+    prune: true
+    selfHeal: true
+  destination: &defaultDestination
+    server: https://kubernetes.default.svc
+
+.: &defaultRepoURL https://github.com/adiffpirate/adiffhunting
+.: &defaultTargetRevision master
+
+.: &sopsPlugin plain-and-encrypted-yaml-files
+.: &dbNamespace db
+.: &reconNamespace recon
+
+applications:
+
+  dgraph:
+    sources:
+      - repoURL: https://charts.dgraph.io
+        chart: dgraph
+        targetRevision: 0.0.19
+        helm:
+          valueFiles:
+            - $adiffhunting/ops/live/dgraph/values.yaml
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/dgraph
+        plugin:
+          name: *sopsPlugin
+        ref: adiffhunting
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: *dbNamespace
+
+  dgraph-init:
+    sources:
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/dgraph-init
+        plugin:
+          name: *sopsPlugin
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: *dbNamespace
+
+  subenum-passive:
+    sources:
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/subenum-passive
+        plugin:
+          name: *sopsPlugin
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: *reconNamespace
+
+  subprobe:
+    sources:
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/subprobe
+        plugin:
+          name: *sopsPlugin
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: *reconNamespace

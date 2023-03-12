@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: subprobe
+  name: subprobe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subprobe
+  template:
+    metadata:
+      labels:
+        app: subprobe
+    spec:
+      containers:
+        - name: subprobe
+          image: adiffhunting/subprobe:84ccfa7
+          env:
+            - name: DEBUG
+              value: "false"
+            - name: DGRAPH_ALPHA_HOST
+              value: "dgraph-alpha.db"
+            - name: DGRAPH_ALPHA_HTTP_PORT
+              value: "8080"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 128Mi

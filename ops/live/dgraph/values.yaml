@@ -1,0 +1,12 @@
+fullnameOverride: dgraph
+
+zero:
+  replicaCount: 1
+  persistence:
+    size: 3Gi
+
+alpha:
+  replicaCount: 1
+  persistence:
+    size: 10Gi
+  extraFlags: "--security whitelist=0.0.0.0/0"

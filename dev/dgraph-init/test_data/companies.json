@@ -1,0 +1,10 @@
+{
+	"airbnb": [
+		{ "name": "atairbnb.com" },
+		{ "name": "withairbnb.com" }
+	],
+	"yahoo": [
+		{ "name": "yahoo.com", "skipScans": true },
+		{ "name": "yahoo.cloud" }
+	]
+}
