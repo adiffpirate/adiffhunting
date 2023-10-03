@@ -30,6 +30,7 @@ if [ -z "$tool" ]; then
 fi
 
 script_path=$(dirname "$0")
+query_result=$(mktemp)
 
 get_domains(){
 	$script_path/query_dgraph.sh -q "
@@ -38,7 +39,12 @@ get_domains(){
 				subdomains { name }
 			}
 		}
-	" | jq -r '(.data.queryTool // [] | .[].subdomains // [] | .[].name) // .'
+	" > $query_result
+	
+	# Try to get domains. If it fails, print the query output to stderr
+	if ! jq -r '.data.queryTool | .[].subdomains | .[].name' $query_result 2>/dev/null; then
+		>&2 cat $query_result
+	fi
 }
 
 if [[ "$unique" == "true" ]]; then
