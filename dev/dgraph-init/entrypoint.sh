@@ -21,6 +21,7 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		lastPassiveEnumeration: DateTime @search(by: [hour])
 		lastActiveEnumeration: DateTime @search(by: [hour])
 		lastProbe: DateTime @search(by: [hour])
+		lastExploit: DateTime @search(by: [hour])
 
 		foundBy: [Tool] @hasInverse(field: subdomains)
 		dnsRecords: [DnsRecord] @hasInverse(field: domain)
