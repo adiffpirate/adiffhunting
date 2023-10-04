@@ -43,7 +43,7 @@ get_domains(){
 	
 	# Try to get domains. If it fails, print the query output to stderr
 	if ! jq -r '.data.queryTool | .[].subdomains | .[].name' $query_result 2>/dev/null; then
-		>&2 cat $query_result
+		>&2 jq -c '.' $query_result
 	fi
 }
 
