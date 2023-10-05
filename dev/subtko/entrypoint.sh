@@ -1,8 +1,5 @@
 #!/bin/bash
 
-records=$(mktemp)
-domains=$(mktemp)
-
 scan_and_save(){
 	domains=$1
 	args=$2
@@ -47,6 +44,7 @@ while true; do
 	$UTILS/wait_for_db.sh
 
 	# Get CNAME values from 100 domains without the "lastExploit" field
+	records=$(mktemp)
 	$UTILS/get_dnsrecords.sh -t CNAME -f 'not eq(Domain.skipScans, true) and not has(Domain.lastExploit)' -a 'first: 100' > $records
 	# If all domains have "lastExploit", get 100 oldests that are at least older than 4 hours
 	if [ ! -s $records ]; then
@@ -68,6 +66,7 @@ while true; do
 	fi
 
 	# Get domains from records
+	domains=$(mktemp)
 	awk '{print $1}' $records | sort -u > $domains
 
 	>&2 echo "Updating lastExploit field"
