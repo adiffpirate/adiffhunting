@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: dgraph-init-
+  name: dgraph-init
   annotations:
     argocd.argoproj.io/hook: PostSync
 spec:
