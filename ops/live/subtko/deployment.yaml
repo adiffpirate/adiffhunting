@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: subtko
+  name: subtko
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subtko
+  template:
+    metadata:
+      labels:
+        app: subtko
+    spec:
+      containers:
+        - name: subtko
+          image: adiffhunting/subtko:placeholder
+          env:
+            - name: DEBUG
+              value: "false"
+            - name: DGRAPH_ALPHA_HOST
+              value: "dgraph-alpha.db"
+            - name: DGRAPH_ALPHA_HTTP_PORT
+              value: "8080"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 128Mi
