@@ -1,7 +1,7 @@
 FROM alpine:3.17.2
 
 # Basic tools
-RUN apk add --no-cache bash curl wget jq unzip python3
+RUN apk add --no-cache bash coreutils curl wget jq unzip python3
 
 # Nuclei
 ARG NUCLEI_VERSION="2.9.15"

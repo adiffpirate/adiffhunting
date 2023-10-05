@@ -4,11 +4,42 @@ records=$(mktemp)
 domains=$(mktemp)
 
 scan_and_save(){
-	input_file=$1
+	domains=$1
 	args=$2
-	output=$(mktemp)
 
-	nuclei -l $input_file -stats -nh -rl 10 -no-stdin -j -o $output $args
+	# Scan with nuclei
+	nuclei_output=$(mktemp)
+	nuclei -l $domains -stats -nh -rl 10 -no-stdin -j -o $nuclei_output $args
+
+	# Save vulns on database
+	if [ -s $nuclei_output ]; then
+		query_file=$(mktemp)
+		echo "
+			mutation {
+				addVuln(input: $(cat $nuclei_output | parse_nuclei_output | jq -s), upsert: true){
+					vuln { name }
+				}
+			}
+		" > $query_file
+		$UTILS/query_dgraph.sh -f $query_file | jq -c .
+	fi
+}
+
+parse_nuclei_output(){
+	while read line; do
+		echo $line | jq -c '{
+			"name": ( .info.name + ": " + ."matched-at" ),
+			"domain": { "name": .host },
+			"title": .info.name,
+			"class": { "name": "subdomain takeover" },
+			"description": .info.description,
+			"severity": .info.severity,
+			"references": .info.reference,
+			"evidence": { "results": ."extracted-results", "request": .request, "response": .response },
+			"foundBy": [ { "name": "nuclei", "type": "exploit" } ],
+			"updatedOn": .timestamp
+		}'
+	done
 }
 
 while true; do
@@ -16,11 +47,11 @@ while true; do
 	$UTILS/wait_for_db.sh
 
 	# Get CNAME values from 100 domains without the "lastExploit" field
-	$UTILS/get_dnsrecords.sh -t CNAME -f 'not has(Domain.lastExploit)' -a 'first: 100' > $records
+	$UTILS/get_dnsrecords.sh -t CNAME -f 'not eq(Domain.skipScans, true) and not has(Domain.lastExploit)' -a 'first: 100' > $records
 	# If all domains have "lastExploit", get 100 oldests that are at least older than 4 hours
 	if [ ! -s $records ]; then
 		$UTILS/get_dnsrecords.sh -t CNAME \
-			-f "lt(Domain.lastExploit, $(date -Iseconds -d '-6 hours'))" \
+			-f "not eq(Domain.skipScans, true) and lt(Domain.lastExploit, \"$(date -Iseconds -d '-6 hours')\")" \
 			-a 'first: 100, orderasc: Domain.lastExploit' \
 		> $records
 	fi
