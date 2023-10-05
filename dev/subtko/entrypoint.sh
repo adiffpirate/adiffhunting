@@ -12,14 +12,25 @@ dangling_cname_scan(){
 	input=$1
 	output=$2
 
+	# Scan with nuclei
 	unrefined_output=$(mktemp)
 	nuclei_scan $input $unrefined_output '-t dns/detect-dangling-cname.yaml'
 
-	# Check if detected cnames are available to claim
+	# Get unique list of domains from dangling cnames findings
+	domains=$(mktemp)
 	cat $unrefined_output | while read line; do
 		cname=$(echo $line | jq -r '."extracted-results"[0]')
-		if whois $cname | grep -i 'no match'; then
-			echo $line >> $output
+		# Get domain using the tld list file
+		echo $cname | egrep "egrep -o '[^.]+\.($(xargs -a /src/tld-list.txt | sed 's/ /|/g'))(\.[^.]+)?$'" >> $domains
+	done
+	sort -u $domains -o $domains
+
+	# For each domain
+	cat $domains | while read domain; do
+		# Check if is available to claim
+		if whois $domain | grep -i 'no match\|not found'; then
+			# Add to output all dangling cname findings from nuclei with this domain
+			jq "select(.\"extracted-results\"[0] | test(\"$domain$\"))" $unrefined_output >> $output
 		fi
 	done
 }

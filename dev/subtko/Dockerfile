@@ -19,5 +19,5 @@ COPY _utils $UTILS
 
 ENV DOMAIN_SCAN_COOLDOWN="6 hours"
 
-COPY subtko/entrypoint.sh /src/entrypoint.sh
+COPY subtko/* /src/
 CMD /src/entrypoint.sh
