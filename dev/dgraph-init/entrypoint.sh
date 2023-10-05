@@ -9,9 +9,6 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
 		domains: [Domain]
-
-		createdAt: DateTime @default(add: { value: "$now" })
-		updatedAt: DateTime @default(update: { value: "$now" })
 	}
 
 	type Domain {
@@ -29,9 +26,6 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		foundBy: [Tool] @hasInverse(field: subdomains)
 		dnsRecords: [DnsRecord] @hasInverse(field: domain)
 		vulns: [Vuln] @hasInverse(field: domain)
-
-		createdAt: DateTime @default(add: { value: "$now" })
-		updatedAt: DateTime @default(update: { value: "$now" })
 	}
 
 	type Tool {
@@ -48,16 +42,13 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		domain: Domain @hasInverse(field: dnsRecords)
 		type: String! @search(by: [hash])
 		values: [String!]! @search(by: [hash, regexp])
-
-		createdAt: DateTime @default(add: { value: "$now" })
-		updatedAt: DateTime @default(update: { value: "$now" })
+		updatedOn: DateTime @search(by: [hour])
 	}
 
 	type Vuln {
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
 		domain: Domain @hasInverse(field: vulns)
-
 		title: String! @search(by: [hash, regexp])
 		class: VulnClass @hasInverse(field: vulns)
 		description: String @search(by: [hash, regexp])
@@ -65,9 +56,7 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		references: [String] @search(by: [hash, regexp])
 		evidence: Evidence
 		foundBy: [Tool] @hasInverse(field: vulns)
-
-		createdAt: DateTime @default(add: { value: "$now" })
-		updatedAt: DateTime @default(update: { value: "$now" })
+		updatedOn: DateTime @search(by: [hour])
 	}
 
 	type VulnClass {

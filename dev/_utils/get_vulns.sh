@@ -28,7 +28,7 @@ fi
 script_path=$(dirname "$0")
 
 $script_path/query_dgraph.sh -t dql -q "{
-	results(func: gt(Vuln.createdAt, \"$(date -Iseconds -d "-$past_time")\")) {
+	results(func: gt(Vuln.updatedOn, \"$(date -Iseconds -d "-$past_time")\")) {
 		Vuln.name,
 		Vuln.evidence { Evidence.target }
 	}
