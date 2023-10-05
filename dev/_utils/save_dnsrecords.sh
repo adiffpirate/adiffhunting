@@ -21,10 +21,9 @@ if [ -z "$records_csv_file" ] || [[ "$(head -n1 $records_csv_file)" != "domain|t
 fi
 
 script_path=$(dirname "$0")
-now=$(date -Iseconds)
 
 # Parse CSV
-records_json_file=/tmp/records_file_$now.json
+records_json_file=$(mktemp)
 echo '[]' > $records_json_file
 tail -n '+2' $records_csv_file | while read line; do
 	# Get vars
@@ -37,14 +36,13 @@ tail -n '+2' $records_csv_file | while read line; do
 			\"name\": \"$record_type: $domain\",
 			\"domain\": { \"name\": \"$domain\" },
 			\"type\": \"$record_type\",
-			\"values\": $values,
-			\"updatedOn\": \"$now\"
+			\"values\": $values
 		}
 	]" $records_json_file)"
 	echo -E "$list" > $records_json_file
 done
 
-query_file=/tmp/query_$(date -Iseconds).graphql
+query_file=$(mktemp)
 echo "
 	mutation {
 		addDnsRecord(input: $(cat $records_json_file), upsert: true){
