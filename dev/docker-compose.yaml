@@ -66,7 +66,7 @@ services:
       - DEBUG=$DEBUG
       - DGRAPH_ALPHA_HOST=dgraph-alpha
       - DGRAPH_ALPHA_HTTP_PORT=8080
-      - DOMAIN_SCAN_COOLDOWN="30 seconds"
+      - DOMAIN_SCAN_COOLDOWN=30 seconds
     restart: unless-stopped
 
 volumes:

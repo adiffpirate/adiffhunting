@@ -5,7 +5,7 @@ nuclei_scan(){
 	output=$2
 	args=$3
 
-	nuclei -l $input -stats -nh -rl 10 -no-stdin -j -o $output $args
+	nuclei -l $input -stats -nh -c 1 -rl 10 -no-stdin -j -o $output $args
 }
 
 dangling_cname_scan(){
@@ -13,7 +13,7 @@ dangling_cname_scan(){
 	output=$2
 
 	unrefined_output=$(mktemp)
-	nuclei_scan $input '-t dns/detect-dangling-cname.yaml' $unrefined_output
+	nuclei_scan $input $unrefined_output '-t dns/detect-dangling-cname.yaml'
 
 	# Check if detected cnames are available to claim
 	cat $unrefined_output | while read line; do
