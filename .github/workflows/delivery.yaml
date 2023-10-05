@@ -3,7 +3,7 @@ name: Delivery
 on:
   push:
     branches: ["master"]
-    paths: ["dev/**"]
+    paths: [".github/workflows/**", "dev/**"]
 
 jobs:
 
@@ -19,7 +19,8 @@ jobs:
         application: [
           "dgraph-init",
           "subenum-passive",
-          "subprobe"
+          "subprobe",
+          "subtko"
         ]
     
     steps:
@@ -75,7 +76,8 @@ jobs:
         application: [
           "dgraph-init",
           "subenum-passive",
-          "subprobe"
+          "subprobe",
+          "subtko"
         ]
 
     steps:
