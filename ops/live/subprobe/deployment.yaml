@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: subprobe
-          image: adiffhunting/subprobe:477532f
+          image: adiffhunting/subprobe:3300997
           env:
             - name: DEBUG
               value: "false"
