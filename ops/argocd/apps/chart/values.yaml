@@ -13,6 +13,7 @@
 .: &sopsPlugin plain-and-encrypted-yaml-files
 .: &dbNamespace db
 .: &reconNamespace recon
+.: &exploitNamespace exploit
 
 applications:
 
@@ -70,3 +71,15 @@ applications:
     destination:
       <<: *defaultDestination
       namespace: *reconNamespace
+
+  subtko:
+    sources:
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/subtko
+        plugin:
+          name: *sopsPlugin
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: *exploitNamespace

@@ -21,9 +21,11 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		lastPassiveEnumeration: DateTime @search(by: [hour])
 		lastActiveEnumeration: DateTime @search(by: [hour])
 		lastProbe: DateTime @search(by: [hour])
+		lastExploit: DateTime @search(by: [hour])
 
 		foundBy: [Tool] @hasInverse(field: subdomains)
 		dnsRecords: [DnsRecord] @hasInverse(field: domain)
+		vulns: [Vuln] @hasInverse(field: domain)
 	}
 
 	type Tool {
@@ -31,6 +33,7 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		name: String! @id @search(by: [hash, regexp])
 		type: String! @search(by: [hash, regexp])
 		subdomains: [Domain] @hasInverse(field: foundBy)
+		vulns: [Vuln] @hasInverse(field: foundBy)
 	}
 
 	type DnsRecord {
@@ -40,6 +43,33 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		type: String! @search(by: [hash])
 		values: [String!]! @search(by: [hash, regexp])
 		updatedOn: DateTime @search(by: [hour])
+	}
+
+	type Vuln {
+		id: ID!
+		name: String! @id @search(by: [hash, regexp])
+		domain: Domain @hasInverse(field: vulns)
+		title: String! @search(by: [hash, regexp])
+		class: VulnClass @hasInverse(field: vulns)
+		description: String @search(by: [hash, regexp])
+		severity: String @search(by: [hash])
+		references: [String] @search(by: [hash, regexp])
+		evidence: Evidence
+		foundBy: [Tool] @hasInverse(field: vulns)
+		updatedOn: DateTime @search(by: [hour])
+	}
+
+	type VulnClass {
+		id: ID!
+		name: String! @id @search(by: [hash, regexp])
+		vulns: [Vuln] @hasInverse(field: class)
+	}
+
+	type Evidence {
+		id: ID!
+		results: [String]
+		request: String
+		response: String
 	}
 ' | jq -c .
 
