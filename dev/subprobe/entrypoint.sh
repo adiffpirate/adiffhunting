@@ -6,7 +6,7 @@ resolve(){
 
 	# Get updated list of resolvers once a day
 	resolvers_file=/tmp/resolvers.txt
-	if [ ! -s $resolvers_file || $(($(date +%s)-$(date +%s -r $resolvers_file || echo 86401))) -gt 86400 ]; then
+	if [ $(($(date +%s)-$(date +%s -r $resolvers_file || echo 86401))) -gt 86400 ]; then
 		>&2 wget https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt -O $resolvers_file
 	fi
 	# Abort if resolvers file is empty (probably the download didn't succeed for some reason)
