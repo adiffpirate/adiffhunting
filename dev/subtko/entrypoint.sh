@@ -26,7 +26,7 @@ parse_nuclei_output(){
 	while read line; do
 		echo $line | jq -c '{
 			"name": ( .info.name + ": " + ."matched-at" ),
-			"domain": { "name": .host },
+			"domain": { "name": ."matched-at" },
 			"title": .info.name,
 			"class": { "name": "subdomain takeover" },
 			"description": .info.description,
