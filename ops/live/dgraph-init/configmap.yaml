@@ -4,4 +4,4 @@ metadata:
   name: dgraph-init-workaround
 data:
   description: "Workaround to force job creation when image tag changes"
-  image: adiffhunting/dgraph-init:f7697e1
+  image: adiffhunting/dgraph-init:44267f7
