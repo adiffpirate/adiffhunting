@@ -1,19 +1,44 @@
 #!/bin/bash
 
-scan_and_save(){
-	domains=$1
-	args=$2
+nuclei_scan(){
+	input=$1
+	output=$2
+	args=$3
 
-	# Scan with nuclei
-	nuclei_output=$(mktemp)
-	nuclei -l $domains -stats -nh -rl 10 -no-stdin -j -o $nuclei_output $args
+	nuclei -l $input -stats -nh -rl 10 -no-stdin -j -o $output $args
+}
+
+dangling_cname_scan(){
+	input=$1
+	output=$2
+
+	unrefined_output=$(mktemp)
+	nuclei_scan $input '-t dns/detect-dangling-cname.yaml' $unrefined_output
+
+	# Check if detected cnames are available to claim
+	cat $unrefined_output | while read line; do
+		cname=$(echo $line | jq -r '."extracted-results"[0]')
+		if whois $cname | grep -i 'no match'; then
+			echo $line >> $output
+		fi
+	done
+}
+
+scan_and_save(){
+	scan=$1
+	input=$2
+	args=$3
+
+	# Scan
+	output=$(mktemp)
+	$scan $input $output $args
 
 	# Save vulns on database
-	if [ -s $nuclei_output ]; then
+	if [ -s $output ]; then
 		query_file=$(mktemp)
 		echo "
 			mutation {
-				addVuln(input: $(cat $nuclei_output | parse_nuclei_output | jq -s), upsert: true){
+				addVuln(input: $(cat $output | parse_output | jq -s), upsert: true){
 					vuln { name }
 				}
 			}
@@ -22,7 +47,7 @@ scan_and_save(){
 	fi
 }
 
-parse_nuclei_output(){
+parse_output(){
 	while read line; do
 		echo $line | jq -c '{
 			"name": ( .info.name + ": " + ."matched-at" ),
@@ -32,7 +57,7 @@ parse_nuclei_output(){
 			"description": .info.description,
 			"severity": .info.severity,
 			"references": .info.reference,
-			"evidence": { "results": ."extracted-results", "request": .request, "response": .response },
+			"evidence": { "target": ."extracted-results"[0], "request": .request, "response": .response },
 			"foundBy": [ { "name": "nuclei", "type": "exploit" } ],
 			"updatedOn": .timestamp
 		}'
@@ -49,7 +74,7 @@ while true; do
 	# If all domains have "lastExploit", get 100 oldests that are at least older than 4 hours
 	if [ ! -s $records ]; then
 		$UTILS/get_dnsrecords.sh -t CNAME \
-			-f "not eq(Domain.skipScans, true) and lt(Domain.lastExploit, \"$(date -Iseconds -d '-6 hours')\")" \
+			-f "not eq(Domain.skipScans, true) and lt(Domain.lastExploit, \"$(date -Iseconds -d "-$DOMAIN_SCAN_COOLDOWN")\")" \
 			-a 'first: 100, orderasc: Domain.lastExploit' \
 		> $records
 	fi
@@ -72,7 +97,7 @@ while true; do
 	>&2 echo "Updating lastExploit field"
 	$UTILS/save_domains.sh -f <(cat $domains | sed '1i name,lastExploit' | sed "s/$/,$(date -Iseconds)/") | jq -c .
 
-	# Scan
-	scan_and_save $domains '-t dns/detect-dangling-cname.yaml -t dns/*takeover*.yaml'
+	# Scan for dangling cname
+	scan_and_save 'dangling_cname_scan' $domains
 
 done

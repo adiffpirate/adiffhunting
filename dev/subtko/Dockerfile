@@ -11,8 +11,13 @@ RUN wget https://github.com/projectdiscovery/nuclei/releases/download/v${NUCLEI_
 	&& chmod +x /usr/bin/nuclei \
 	&& rm -rfv nuclei*
 
+# WhoIs
+RUN apk add --no-cache whois
+
 ENV UTILS=/src/_utils
 COPY _utils $UTILS
+
+ENV DOMAIN_SCAN_COOLDOWN="6 hours"
 
 COPY subtko/entrypoint.sh /src/entrypoint.sh
 CMD /src/entrypoint.sh

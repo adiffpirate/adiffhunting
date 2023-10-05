@@ -67,7 +67,7 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 
 	type Evidence {
 		id: ID!
-		results: [String]
+		target: String
 		request: String
 		response: String
 	}
