@@ -5,9 +5,9 @@ RUN apk add --no-cache bash curl jq wget unzip python3
 
 # Amass
 ARG AMASS_VERSION="4.2.0"
-RUN wget https://github.com/OWASP/Amass/releases/download/v${AMASS_VERSION}/amass_linux_i386.zip -O amass.zip \
+RUN wget https://github.com/OWASP/Amass/releases/download/v${AMASS_VERSION}/amass_Linux_i386.zip -O amass.zip \
 	&& unzip amass.zip \
-	&& mv amass_linux_i386/amass /usr/bin/amass \
+	&& mv amass_Linux_i386/amass /usr/bin/amass \
 	&& chmod +x /usr/bin/amass \
 	&& rm -rfv amass*
 
