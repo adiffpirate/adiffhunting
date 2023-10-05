@@ -47,15 +47,15 @@ jobs:
         id: filter
         with:
           filters: |
-            utils:
+            changed:
+              - .github/workflows/**
               - dev/_utils/**
-            app: 
               - dev/${{ matrix.application }}/**
 
       # Build and push image only if _utils or app dir has changed
       - uses: docker/build-push-action@v4
         name: Build
-        if: ${{ (steps.filter.outputs.utils == 'true') || (steps.filter.outputs.app == 'true') }}
+        if: ${{ steps.filter.outputs.changed == 'true' }}
         with:
           file: dev/${{ matrix.application }}/Dockerfile
           context: dev
@@ -75,7 +75,8 @@ jobs:
         application: [
           "dgraph-init",
           "subenum-passive",
-          "subprobe"
+          "subprobe",
+          "subtko"
         ]
 
     steps:
@@ -91,14 +92,14 @@ jobs:
         id: filter
         with:
           filters: |
-            utils:
+            changed:
+              - .github/workflows/**
               - dev/_utils/**
-            app: 
               - dev/${{ matrix.application }}/**
       
       # Update image tag only if _utils or app dir has changed
       - name: Update deployment tag
-        if: ${{ (steps.filter.outputs.utils == 'true') || (steps.filter.outputs.app == 'true') }}
+        if: ${{ steps.filter.outputs.changed == 'true' }}
         working-directory: ops/live
         env:
           APP: ${{ matrix.application }}
@@ -109,7 +110,7 @@ jobs:
       # Commit and push only if _utils or app dir has changed
       - uses: nick-fields/retry@v2
         name: Commit and push changes
-        if: ${{ (steps.filter.outputs.utils == 'true') || (steps.filter.outputs.app == 'true') }}
+        if: ${{ steps.filter.outputs.changed == 'true' }}
         env:
           APP: ${{ matrix.application }}
           TAG: ${{ steps.vars.outputs.tag }}
