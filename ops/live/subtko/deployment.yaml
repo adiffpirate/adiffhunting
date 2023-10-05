@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: subtko
-          image: adiffhunting/subtko:44267f7
+          image: adiffhunting/subtko:9c413a0
           env:
             - name: DEBUG
               value: "false"
