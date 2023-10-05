@@ -1,11 +1,11 @@
 #!/bin/bash
 
 nuclei_scan(){
-	input=$1
-	output=$2
-	args=$3
+	nuclei_input=$1
+	nuclei_output=$2
+	nuclei_args=$3
 
-	nuclei -l $input -stats -nh -c 1 -rl 10 -no-stdin -j -o $output $args
+	nuclei -l $nuclei_input -stats -nh -c 1 -rl 10 -no-stdin -j -o $nuclei_output $nuclei_args
 }
 
 dangling_cname_scan(){
@@ -19,18 +19,27 @@ dangling_cname_scan(){
 	# Get unique list of domains from dangling cnames findings
 	domains=$(mktemp)
 	cat $unrefined_output | while read line; do
-		cname=$(echo $line | jq -r '."extracted-results"[0]')
+		cname=$(echo $line | jq -r '."extracted-results"[0]' | sed 's/\.$//')
 		# Get domain using the tld list file
-		echo $cname | egrep "egrep -o '[^.]+\.($(xargs -a /src/tld-list.txt | sed 's/ /|/g'))(\.[^.]+)?$'" >> $domains
+		echo $cname | egrep -o "[^.]+\.($(xargs -a /src/tld-list.txt | sed 's/ /|/g'))(\.[^.]+)?$" >> $domains
 	done
 	sort -u $domains -o $domains
+
+	if [[ $DEBUG == "true" ]]; then
+		>&2 echo "Will check the following domains availability:"
+		>&2 cat $domains
+	fi
 
 	# For each domain
 	cat $domains | while read domain; do
 		# Check if is available to claim
-		if whois $domain | grep -i 'no match\|not found'; then
+		>&2 echo -n "Checking if $domain is available: "
+		if whois $domain | grep -i 'no match\|not found' > /dev/null; then
+			>&2 echo "YES"
 			# Add to output all dangling cname findings from nuclei with this domain
-			jq "select(.\"extracted-results\"[0] | test(\"$domain$\"))" $unrefined_output >> $output
+			jq -c "select(.\"extracted-results\"[0] | test(\"$domain(.)?$\"))" $unrefined_output 2>/dev/null >> $output
+		else
+			>&2 echo "NO"
 		fi
 	done
 }
