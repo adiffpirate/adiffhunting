@@ -38,7 +38,7 @@ tail -n '+2' $records_csv_file | while read line; do
 			\"domain\": { \"name\": \"$domain\" },
 			\"type\": \"$record_type\",
 			\"values\": $values,
-			\"updatedOn\": \"$now\"
+			\"updatedAt\": \"$now\"
 		}
 	]" $records_json_file)"
 	echo -E "$list" > $records_json_file

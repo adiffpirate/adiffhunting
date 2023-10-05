@@ -70,7 +70,7 @@ parse_output(){
 			"references": .info.reference,
 			"evidence": { "target": ."extracted-results"[0], "request": .request, "response": .response },
 			"foundBy": [ { "name": "nuclei", "type": "exploit" } ],
-			"updatedOn": .timestamp
+			"updatedAt": .timestamp
 		}'
 	done
 }

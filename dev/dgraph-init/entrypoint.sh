@@ -42,7 +42,7 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		domain: Domain @hasInverse(field: dnsRecords)
 		type: String! @search(by: [hash])
 		values: [String!]! @search(by: [hash, regexp])
-		updatedOn: DateTime @search(by: [hour])
+		updatedAt: DateTime @search(by: [hour])
 	}
 
 	type Vuln {
@@ -56,7 +56,7 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		references: [String] @search(by: [hash, regexp])
 		evidence: Evidence
 		foundBy: [Tool] @hasInverse(field: vulns)
-		updatedOn: DateTime @search(by: [hour])
+		updatedAt: DateTime @search(by: [hour])
 	}
 
 	type VulnClass {
