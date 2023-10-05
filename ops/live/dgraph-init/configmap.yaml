@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dgraph-init-workaround
+data:
+  description: "Workaround to force job creation when image tag changes"
+  image: adiffhunting/dgraph-init:f7697e1
