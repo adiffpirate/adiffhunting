@@ -2,6 +2,7 @@ import argparse
 import re
 import json
 import csv
+import sys
 
 def main():
     parser = argparse.ArgumentParser(
@@ -19,8 +20,11 @@ def main():
     with open(args.file) as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for line in csv_reader:
-            line['name'] = re.sub(r"^\W+", "", line['name']) # Remove non alpha numeric chars from beginning
-            parsed_csv.append(line)
+            # Only add valids FQDN
+            if re.match('(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+[a-zA-Z]{2,63}$)', line['name']):
+                parsed_csv.append(line)
+            else:
+                print(f"WARNING: Invalid FQDN: {line['name']}", file=sys.stderr)
     domains_on_csv_file = [ line['name'] for line in parsed_csv ]
 
     # Create dict with domains separated by level
