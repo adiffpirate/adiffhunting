@@ -5,7 +5,27 @@ nuclei_scan(){
 	nuclei_output=$2
 	nuclei_args=$3
 
-	nuclei -l $nuclei_input -stats -nh -c 1 -rl 10 -no-stdin -j -o $nuclei_output $nuclei_args
+	# Get updated list of resolvers once a day
+	resolvers=/tmp/resolvers.txt
+	if [ $(($(date +%s)-$(date +%s -r $resolvers || echo 86401))) -gt 86400 ]; then
+		wget https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt -O $resolvers
+	fi
+	# Abort if resolvers file is empty (probably the download didn't succeed for some reason)
+	if [ ! -s $resolvers ]; then
+		>&2 "Resolvers file is empty. Aborting."
+		rm -f $resolvers
+		exit 1
+	fi
+
+	nuclei \
+		-list $nuclei_input -output $nuclei_output -jsonl \
+		-no-stdin -resolvers $resolvers -no-httpx \
+		-concurrency 1 -rate-limit 10 -silent \
+		$nuclei_args
+
+	if [ ! -s $nuclei_output ]; then
+		echo "Nothing was found."
+	fi
 }
 
 dangling_cname_scan(){
@@ -26,20 +46,20 @@ dangling_cname_scan(){
 	sort -u $domains -o $domains
 
 	if [[ $DEBUG == "true" ]]; then
-		>&2 echo "Will check the following domains availability:"
-		>&2 cat $domains
+		echo "Will check the following domains availability:"
+		cat $domains
 	fi
 
 	# For each domain
 	cat $domains | while read domain; do
 		# Check if is available to claim
-		>&2 echo -n "Checking if $domain is available: "
-		if whois $domain | grep -i 'no match\|not found' > /dev/null; then
-			>&2 echo "YES"
+		echo -n "Checking if $domain is available: "
+		if whois $domain 2>/dev/null | grep -i 'no match\|not found' > /dev/null; then
+			echo "YES"
 			# Add to output all dangling cname findings from nuclei with this domain
 			jq -c "select(.\"extracted-results\"[0] | test(\"$domain(.)?$\"))" $unrefined_output 2>/dev/null >> $output
 		else
-			>&2 echo "NO"
+			echo "NO"
 		fi
 	done
 }
@@ -118,6 +138,7 @@ while true; do
 	$UTILS/save_domains.sh -f <(cat $domains | sed '1i name,lastExploit' | sed "s/$/,$(date -Iseconds)/") | jq -c .
 
 	# Scan for dangling cname
+	>&2 echo "Starting: Dangling CNAME Scan"
 	scan_and_save 'dangling_cname_scan' $domains
 
 done

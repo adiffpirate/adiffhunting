@@ -79,22 +79,22 @@ while true; do
 	fi
 
 	if [[ $DEBUG == "true" ]]; then
-		>&2 echo "Will probe the following domains:"
-		>&2 cat $domains_file
+		echo "Will probe the following domains:"
+		cat $domains_file
 	fi
 
 	if [ ! -s $domains_file ]; then
-		>&2 echo "WARNING: Unable to get domains to probe. Trying again in 10 seconds."
+		echo "No domains to probe. Trying again in 10 seconds."
 		sleep 10
 		continue
 	fi
 
-	>&2 echo "Updating lastProbe field"
+	echo "Updating lastProbe field"
 	$UTILS/save_domains.sh -f <(cat $domains_file | sed '1i name,lastProbe' | sed "s/$/,$(date -Iseconds)/") | jq -c .
 
-	>&2 echo "Starting: DNSX"
+	echo "Starting: DNSX"
 	for record_type in 'a' 'aaaa' 'cname' 'ns' 'txt' 'srv' 'ptr' 'mx' 'soa' 'caa'; do
-		>&2 echo "Running: DNSX for $(echo $record_type | tr '[:lower:]' '[:upper:]') record type"
+		echo "Running: DNSX for $(echo $record_type | tr '[:lower:]' '[:upper:]') record type"
 		resolve_and_save $domains_file $record_type
 	done
 

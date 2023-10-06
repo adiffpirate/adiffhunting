@@ -37,7 +37,7 @@ get_oldest_enum_domain(){
 update_last_enum_field(){
 	domain=$1
 
-	>&2 echo "[$domain] Updating lastPassiveEnumeration field"
+	echo "[$domain] Updating lastPassiveEnumeration field"
 	if [ -z "$domain" ]; then
 		>&2 echo "WARNING: Skipping since no domain was provided."
 		return
@@ -60,7 +60,7 @@ run(){
 	domain=$2
 
 	if [[ $tool == "amass-passive" ]]; then
-		timeout 600 amass enum -passive -noalts -nolocaldb -nocolor -d $domain
+		timeout 600 amass enum -passive -nocolor -d $domain
 	elif [[ $tool == "subfinder" ]]; then
 		subfinder -d $domain
 	elif [[ $tool == "chaos" ]] && [ -n "$CHAOS_KEY" ]; then
@@ -100,13 +100,13 @@ while true; do
 	domain=$(get_oldest_enum_domain 'level: { eq: 2 }')
 	update_last_enum_field $domain
 
-	>&2 echo "[$domain] Running: Amass"
+	echo "[$domain] Running: Amass"
 	run_and_save amass-passive $domain
 
-	>&2 echo "[$domain] Running: Subfinder"
+	echo "[$domain] Running: Subfinder"
 	run_and_save subfinder $domain
 
-	>&2 echo "[$domain] Running: Chaos"
+	echo "[$domain] Running: Chaos"
 	run_and_save chaos $domain
 
 	#--------------------------------------------------------------------#
@@ -117,10 +117,10 @@ while true; do
 		subdomain=$(get_oldest_enum_domain 'level: { gt: 2 }')
 		update_last_enum_field $subdomain
 
-		>&2 echo "[$subdomain] Running: Subfinder"
+		echo "[$subdomain] Running: Subfinder"
 		run_and_save subfinder $subdomain
 
-		>&2 echo "[$subdomain] Running: Chaos"
+		echo "[$subdomain] Running: Chaos"
 		run_and_save chaos $subdomain
 	done
 

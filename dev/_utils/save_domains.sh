@@ -23,8 +23,7 @@ if [ -z "$domains_csv_file" ]; then
 fi
 
 script_path=$(dirname "$0")
-
-domains_json_file=/tmp/save_domains_$(date -Iseconds).json
+domains_json_file=$(mktemp)
 
 # Write JSON from domains file
 python3 $script_path/parse_domains.py -f "$domains_csv_file" -t "$tool" | jq -c . > $domains_json_file
@@ -45,12 +44,6 @@ jq '.[] | .level' $domains_json_file | sort -n -u | while read level; do
 		}
 	" > $query_file
 
-	if [[ $DEBUG == "true" ]]; then
-		>&2 echo "[save_domains.sh] $(cat $query_file)"
-	fi
-
 	# Send query to database
 	$script_path/query_dgraph.sh -f "$query_file" | jq -c .
 done
-
-rm $domains_json_file
