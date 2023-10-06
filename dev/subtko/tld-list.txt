@@ -34,8 +34,6 @@ airforce
 airtel
 akdn
 al
-alibaba
-alipay
 allfinanz
 allstate
 ally
@@ -1166,7 +1164,6 @@ tk
 tkmaxx
 tl
 tm
-tmall
 tn
 to
 today
@@ -1247,7 +1244,6 @@ voto
 voyage
 vu
 wales
-walmart
 walter
 wang
 wanggou
@@ -1289,7 +1285,6 @@ xin
 xxx
 xyz
 yachts
-yahoo
 yamaxun
 yandex
 ye
@@ -1297,7 +1292,6 @@ yodobashi
 yoga
 yokohama
 you
-youtube
 yt
 yun
 za
