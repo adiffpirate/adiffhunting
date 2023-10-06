@@ -54,13 +54,19 @@ fi
 
 # Prepare request
 if [[ "$query_type" == "graphql" ]] ; then
-	path="graphql"
-	content_type="application/json"
 	body="{\"query\":\"$(echo $query | sed 's/"/\\"/g')\"}"
+	content_type="application/json"
+	path="graphql"
 elif [[ "$query_type" == "dql" ]]; then
-	path="query"
-	content_type="application/dql"
 	body=$query
+	# Set content type and path based on body
+	if [[ "$body" =~ ^( )*(upsert) ]]; then
+		content_type="application/rdf"
+		path="mutate?commitNow=true"
+	else
+		content_type="application/dql"
+		path="query?ro=true"
+	fi
 else
 	echo "$usage"
 	exit 1
