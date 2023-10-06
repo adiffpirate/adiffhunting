@@ -71,7 +71,7 @@ scan_and_save(){
 
 	# Scan
 	output=$(mktemp)
-	$scan $input $output $args
+	$scan "$input" "$output" "$args"
 
 	# Save vulns on database
 	if [ -s $output ]; then
@@ -104,19 +104,26 @@ parse_output(){
 	done
 }
 
-while true; do
+get_domains(){
+	extra_filter=$1
+	filter='not eq(Domain.skipScans, true)'
+	if [ -n "$extra_filter" ]; then
+		filter="$filter and $extra_filter"
+	fi
 
-	$UTILS/wait_for_db.sh
-
-	# Get CNAME values from 100 domains without the "lastExploit" field
 	records=$(mktemp)
-	$UTILS/get_dnsrecords.sh -t CNAME -f 'not eq(Domain.skipScans, true) and not has(Domain.lastExploit)' -a 'first: 100' > $records
+	# Get CNAME values from 100 domains without the "lastExploit" field
+	$UTILS/get_dnsrecords.sh -t CNAME -f "$filter and not has(Domain.lastExploit)" -a 'first: 100' > $records
 	# If all domains have "lastExploit", get 100 oldests that are at least older than 4 hours
 	if [ ! -s $records ]; then
 		$UTILS/get_dnsrecords.sh -t CNAME \
-			-f "not eq(Domain.skipScans, true) and lt(Domain.lastExploit, \"$(date -Iseconds -d "-$DOMAIN_SCAN_COOLDOWN")\")" \
+			-f "$filter and lt(Domain.lastExploit, \"$(date -Iseconds -d "-$DOMAIN_SCAN_COOLDOWN")\")" \
 			-a 'first: 100, orderasc: Domain.lastExploit' \
 		> $records
+	fi
+
+	if [ ! -s $records ]; then
+		>&2 echo "WARNING: No records to scan."
 	fi
 
 	if [[ $DEBUG == "true" ]]; then
@@ -124,21 +131,28 @@ while true; do
 		>&2 cat $records
 	fi
 
-	if [ ! -s $records ]; then
-		>&2 echo "WARNING: No records to scan. Trying again in 10 seconds."
-		sleep 10
-		continue
-	fi
-
-	# Get domains from records
+	# Get domains from cname records
 	domains=$(mktemp)
-	awk '{print $1}' $records | sort -u > $domains
+	cat $records | awk '{print $1}' $records | sort -u > $domains
 
 	>&2 echo "Updating lastExploit field"
 	$UTILS/save_domains.sh -f <(cat $domains | sed '1i name,lastExploit' | sed "s/$/,$(date -Iseconds)/") | jq -c .
 
-	# Scan for dangling cname
-	>&2 echo "Starting: Dangling CNAME Scan"
-	scan_and_save 'dangling_cname_scan' $domains
+	# Print domains
+	cat $domains
+}
+
+while true; do
+
+	$UTILS/wait_for_db.sh
+
+	>&2 echo "Starting Scan: Dangling CNAME - Generic"
+	scan_and_save 'dangling_cname_scan' <(get_domains)
+
+	>&2 echo "Starting Scan: Dangling CNAME - AWS Elastic Beanstalk"
+	scan_and_save 'nuclei_scan' <(get_domains) '-templates dns/elasticbeanstalk-takeover.yaml'
+
+	>&2 echo "Starting Scan: Dangling CNAME - Microsoft Azure"
+	scan_and_save 'nuclei_scan' <(get_domains) '-templates dns/azure-takeover-detection.yaml'
 
 done

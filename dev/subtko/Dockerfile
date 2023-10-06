@@ -17,7 +17,7 @@ RUN apk add --no-cache whois
 ENV UTILS=/src/_utils
 COPY _utils $UTILS
 
-ENV DOMAIN_SCAN_COOLDOWN="6 hours"
+ENV DOMAIN_SCAN_COOLDOWN="4 hours"
 
 COPY subtko/* /src/
 CMD /src/entrypoint.sh
