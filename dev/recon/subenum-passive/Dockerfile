@@ -1,4 +1,4 @@
-FROM alpine:3.17.2
+FROM alpine:3.18.4
 
 # Basic tools
 RUN apk add --no-cache bash curl jq wget unzip python3
