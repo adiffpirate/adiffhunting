@@ -60,16 +60,12 @@ run(){
 	domain=$2
 
 	if [[ $tool == "amass-passive" ]]; then
-		timeout 600 amass enum -passive -nocolor -d $domain
+		timeout 600 amass enum -silent -passive -nocolor -d $domain
 	elif [[ $tool == "subfinder" ]]; then
-		subfinder -d $domain
+		subfinder -silent -d $domain
 	elif [[ $tool == "chaos" ]] && [ -n "$CHAOS_KEY" ]; then
-		if [[ $domain =~ ^[^.]+\.[^.]+$ ]]; then # If domain is a level 2 domain
-			chaos -d $domain
-		else
-			# Chaos doesn't accept domains which levels are greater than 2, so we strip the domain and filter the results
-			chaos -d $(echo $domain | grep -Eo '[^.]+\.[^.]+$') | grep -E "^.*\.$domain$"
-		fi
+		# Chaos doesn't accept domains which levels are greater than 2, so we strip the domain and filter the results
+		chaos -silent -d $(echo $domain | grep -Eo '[^.]+\.[^.]+$') | grep -E "^.*\.$domain$"
 	fi
 }
 
