@@ -2,21 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: subtko
-  name: subtko
+    app: subprobe-dns
+  name: subprobe-dns
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: subtko
+      app: subprobe-dns
   template:
     metadata:
       labels:
-        app: subtko
+        app: subprobe-dns
     spec:
       containers:
-        - name: subtko
-          image: adiffhunting/subtko:70ff652
+        - name: subprobe-dns
+          image: adiffhunting/recon-subprobe-dns:70ff652
           env:
             - name: DEBUG
               value: "false"

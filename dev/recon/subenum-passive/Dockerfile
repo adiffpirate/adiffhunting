@@ -30,5 +30,5 @@ RUN wget https://github.com/projectdiscovery/chaos-client/releases/download/v${C
 ENV UTILS=/src/_utils
 COPY _utils $UTILS
 
-COPY subenum-passive/entrypoint.sh /src/entrypoint.sh
+COPY recon/subenum-passive/* /src/
 CMD /src/entrypoint.sh

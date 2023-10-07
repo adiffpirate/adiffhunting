@@ -14,5 +14,5 @@ RUN wget https://github.com/projectdiscovery/dnsx/releases/download/v${DNSX_VERS
 ENV UTILS=/src/_utils
 COPY _utils $UTILS
 
-COPY subprobe/entrypoint.sh /src/entrypoint.sh
+COPY recon/subprobe-dns/* /src/
 CMD /src/entrypoint.sh

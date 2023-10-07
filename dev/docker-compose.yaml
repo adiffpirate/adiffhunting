@@ -28,7 +28,7 @@ services:
 
   dgraph-init:
     build:
-      dockerfile: dgraph-init/Dockerfile
+      dockerfile: db/dgraph-init/Dockerfile
       context: . # dev dir (needed to copy _utils)
     environment:
       - DEBUG=$DEBUG
@@ -39,7 +39,7 @@ services:
 
   subenum-passive:
     build:
-      dockerfile: subenum-passive/Dockerfile
+      dockerfile: recon/subenum-passive/Dockerfile
       context: . # dev dir (needed to copy _utils)
     environment:
       - DEBUG=$DEBUG
@@ -48,9 +48,9 @@ services:
       - CHAOS_KEY=$CHAOS_KEY
     restart: unless-stopped
 
-  subprobe:
+  subprobe-dns:
     build:
-      dockerfile: subprobe/Dockerfile
+      dockerfile: recon/subprobe-dns/Dockerfile
       context: . # dev dir (needed to copy _utils)
     environment:
       - DEBUG=$DEBUG
@@ -60,7 +60,7 @@ services:
 
   subtko:
     build:
-      dockerfile: subtko/Dockerfile
+      dockerfile: exploit/subtko/Dockerfile
       context: . # dev dir (needed to copy _utils)
     environment:
       - DEBUG=$DEBUG

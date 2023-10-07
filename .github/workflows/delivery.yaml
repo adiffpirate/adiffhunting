@@ -7,21 +7,33 @@ on:
 
 jobs:
 
+  #------#
+  # INIT #
+  #------#
+
+  get-apps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout source code
+
+      - name: Get applications list
+        id: get-apps
+        run: echo "apps=[$(find dev -name 'Dockerfile' -type f | awk -v ORS='","' -F/ '{print $2"/"$3}' | sed 's/^/\"/' | sed 's/,"$//')]" >> $GITHUB_OUTPUT
+    outputs:
+      apps: ${{ steps.get-apps.outputs.apps }}
+
   #-----------------------------------#
   # DEV: Build and push docker images #
   #-----------------------------------#
 
   docker-push:
     runs-on: ubuntu-latest
+    needs: get-apps
 
     strategy:
       matrix:
-        application: [
-          "dgraph-init",
-          "subenum-passive",
-          "subprobe",
-          "subtko"
-        ]
+        application: ${{ fromJson(needs.get-apps.outputs.apps) }}
     
     steps:
       - uses: actions/checkout@v3
@@ -39,9 +51,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Get tag as commit hash
+      - name: Get image name with tag
         id: vars
-        run: echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: echo "image=$(echo '${{ matrix.application }}' | sed 's/\//-/g'):$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - uses: dorny/paths-filter@v2
         name: Get changed dirs
@@ -61,7 +73,7 @@ jobs:
           file: dev/${{ matrix.application }}/Dockerfile
           context: dev
           push: true
-          tags: adiffhunting/${{ matrix.application }}:${{ steps.vars.outputs.tag }}
+          tags: adiffhunting/${{ steps.vars.outputs.image }}
 
   #-----------------------------------#
   # OPS: Update live environment code #
@@ -69,24 +81,19 @@ jobs:
 
   update-live:
     runs-on: ubuntu-latest
-    needs: docker-push
+    needs: [get-apps, docker-push]
 
     strategy:
       matrix:
-        application: [
-          "dgraph-init",
-          "subenum-passive",
-          "subprobe",
-          "subtko"
-        ]
+        application: ${{ fromJson(needs.get-apps.outputs.apps) }}
 
     steps:
       - uses: actions/checkout@v3
         name: Checkout source code
 
-      - name: Get tag as commit hash
+      - name: Get image name with tag
         id: vars
-        run: echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: echo "image=$(echo '${{ matrix.application }}' | sed 's/\//-/g'):$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - uses: dorny/paths-filter@v2
         name: Get changed dirs
@@ -103,18 +110,16 @@ jobs:
         if: ${{ (steps.filter.outputs.utils == 'true') || (steps.filter.outputs.app == 'true') }}
         working-directory: ops/live
         env:
-          APP: ${{ matrix.application }}
-          TAG: ${{ steps.vars.outputs.tag }}
+          IMAGE: ${{ steps.vars.outputs.image }}
         run: |
-          find . -name '*.yaml' -type f -exec sed -i "s/image: adiffhunting\/$APP\:.*$/image\: adiffhunting\/$APP\:$TAG/g" {} \;
+          find . -name '*.yaml' -type f -exec sed -i "s/image: adiffhunting\/$(echo $IMAGE | awk -F: '{print $1}')\:.*$/image\: adiffhunting\/$IMAGE/g" {} \;
 
       # Commit and push only if _utils or app dir has changed
       - uses: nick-fields/retry@v2
         name: Commit and push changes
         if: ${{ (steps.filter.outputs.utils == 'true') || (steps.filter.outputs.app == 'true') }}
         env:
-          APP: ${{ matrix.application }}
-          TAG: ${{ steps.vars.outputs.tag }}
+          IMAGE: ${{ steps.vars.outputs.image }}
         with:
           max_attempts: 10
           retry_on: error
@@ -127,5 +132,5 @@ jobs:
             git rebase origin/master
             git stash pop
             git add -A
-            git commit -m "{ops}[$APP] Bump image tag to $TAG"
+            git commit -m "{ops} Bump to image $IMAGE"
             git push

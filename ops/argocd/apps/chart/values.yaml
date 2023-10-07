@@ -17,69 +17,45 @@
 
 applications:
 
-  dgraph:
+  db:
     sources:
       - repoURL: https://charts.dgraph.io
         chart: dgraph
         targetRevision: 0.0.19
         helm:
           valueFiles:
-            - $adiffhunting/ops/live/dgraph/values.yaml
+            - $adiffhunting/ops/live/db/dgraph/values.yaml
       - repoURL: *defaultRepoURL
         targetRevision: *defaultTargetRevision
-        path: ops/live/dgraph
+        path: ops/live/db
         plugin:
           name: *sopsPlugin
         ref: adiffhunting
     <<: *default
     destination:
       <<: *defaultDestination
-      namespace: *dbNamespace
+      namespace: db
 
-  dgraph-init:
+  recon:
     sources:
       - repoURL: *defaultRepoURL
         targetRevision: *defaultTargetRevision
-        path: ops/live/dgraph-init
+        path: ops/live/recon
         plugin:
           name: *sopsPlugin
     <<: *default
     destination:
       <<: *defaultDestination
-      namespace: *dbNamespace
+      namespace: recon
 
-  subenum-passive:
+  exploit:
     sources:
       - repoURL: *defaultRepoURL
         targetRevision: *defaultTargetRevision
-        path: ops/live/subenum-passive
+        path: ops/live/exploit
         plugin:
           name: *sopsPlugin
     <<: *default
     destination:
       <<: *defaultDestination
-      namespace: *reconNamespace
-
-  subprobe:
-    sources:
-      - repoURL: *defaultRepoURL
-        targetRevision: *defaultTargetRevision
-        path: ops/live/subprobe
-        plugin:
-          name: *sopsPlugin
-    <<: *default
-    destination:
-      <<: *defaultDestination
-      namespace: *reconNamespace
-
-  subtko:
-    sources:
-      - repoURL: *defaultRepoURL
-        targetRevision: *defaultTargetRevision
-        path: ops/live/subtko
-        plugin:
-          name: *sopsPlugin
-    <<: *default
-    destination:
-      <<: *defaultDestination
-      namespace: *exploitNamespace
+      namespace: exploit

@@ -2,21 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: subprobe
-  name: subprobe
+    app: subenum-passive
+  name: subenum-passive
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: subprobe
+      app: subenum-passive
   template:
     metadata:
       labels:
-        app: subprobe
+        app: subenum-passive
     spec:
       containers:
-        - name: subprobe
-          image: adiffhunting/subprobe:70ff652
+        - name: subenum-passive
+          image: adiffhunting/recon-subenum-passive:f8162d4
           env:
             - name: DEBUG
               value: "false"
@@ -24,9 +24,14 @@ spec:
               value: "dgraph-alpha.db"
             - name: DGRAPH_ALPHA_HTTP_PORT
               value: "8080"
+            - name: CHAOS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: subenum-passive
+                  key: chaos-api-key
           resources:
             requests:
-              cpu: 100m
-              memory: 128Mi
+              cpu: 250m
+              memory: 256Mi
             limits:
-              memory: 128Mi
+              memory: 256Mi
