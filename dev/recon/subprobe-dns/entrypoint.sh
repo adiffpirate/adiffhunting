@@ -8,12 +8,12 @@ resolve(){
 	# Get updated list of resolvers once a day
 	resolvers_file=/tmp/resolvers.txt
 	if [ $(($(date +%s)-$(date +%s -r $resolvers_file || echo 86401))) -gt 86400 ]; then
-		>&2 echo "Downloading resolvers file."
+		>&2 echo "Downloading resolvers file"
 		curl --silent https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt > $resolvers_file
 	fi
 	# Abort if resolvers file is empty (probably the download didn't succeed for some reason)
 	if [ ! -s $resolvers_file ]; then
-		>&2 echo "Resolvers file is empty. Aborting."
+		>&2 echo "Resolvers file is empty. Aborting"
 		rm -f $resolvers_file
 		exit 1
 	fi
@@ -58,9 +58,9 @@ resolve_and_save(){
 				}
 			}
 		" > $query_file
-		$UTILS/query_dgraph.sh -f $query_file | jq -c .
+		>&2 $UTILS/query_dgraph.sh -f $query_file
 	else
-		echo "Nothing found."
+		>&2 echo "Nothing found"
 	fi
 }
 
@@ -71,31 +71,10 @@ while true; do
 	$UTILS/wait_for_db.sh
 
 	# Get 100 domains without the "lastProbe" field
-	$UTILS/get_domains.sh -a '
-		filter: {
-			and: [
-				{ not: { skipScans: true } },
-				{ not: { has: lastProbe } },
-				{ level: { ge: 2 } }
-			]
-		},
-		first: 100
-	' > $domains
-
+	$UTILS/get_domains.sh -f 'not has(Domain.lastProbe)' -a 'first: 100' > $domains
 	# If all domains have "lastProbe", get the 100 oldest
 	if [ ! -s $domains ]; then
-		$UTILS/get_domains.sh -a '
-			filter: {
-				and: [
-					{ not: { skipScans: true } },
-					{ level: { ge: 2 } }
-				]
-			},
-			order: {
-				asc: lastProbe
-			},
-			first: 100
-		' > $domains
+		$UTILS/get_domains.sh -a 'orderasc: Domain.lastProbe, first: 100' > $domains
 	fi
 
 	if [[ $DEBUG == "true" ]]; then
@@ -104,7 +83,7 @@ while true; do
 	fi
 
 	if [ ! -s $domains ]; then
-		echo "No domains to probe. Trying again in 10 seconds."
+		echo "No domains to probe. Trying again in 10 seconds"
 		sleep 10
 		continue
 	fi

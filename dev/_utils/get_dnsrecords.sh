@@ -2,8 +2,7 @@
 
 usage="$(basename "$0") [-h|t|a]
 
-Get all dns records from DGraph using GraphQL \"queryDnsRecord\" function.
-More info: https://dgraph.io/docs/graphql/queries
+Get all dns records from DGraph using DQL
 
 flags:
 	-h show this help text
@@ -53,6 +52,4 @@ $script_path/query_dgraph.sh -t dql -q "
 " > $query_result
 
 # Try to parse records from output. If it fails, print the whole query output to stderr
-if ! jq -r '.data.results | .[] | ."Domain.name" as $domain | ."Domain.dnsRecords" | .[] | ."DnsRecord.type" as $type | ."DnsRecord.values" | .[] | [$domain, $type, .] | join(" ")' $query_result 2>/dev/null; then
-	>&2 jq -c '.' $query_result
-fi
+jq -c -r '.data.results | .[] | ."Domain.name" as $domain | ."Domain.dnsRecords" | .[] | ."DnsRecord.type" as $type | ."DnsRecord.values" | .[] | [$domain, $type, .] | join(" ")' $query_result 2>/dev/null || >&2 jq -c '.' $query_result

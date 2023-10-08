@@ -1,55 +1,46 @@
 #!/bin/bash
 
-usage="$(basename "$0") [-h|a|d]
+usage="$(basename "$0") [-h|a|f|d]
 
-Get domains from DGraph using GraphQL \"queryDomain\" function.
-More info: https://dgraph.io/docs/graphql/queries
+Get domains from DGraph using DQL
 
 flags:
 	-h show this help text
 	-a args (optional)
+	-f filter (optional)
 	-d get all domains below passed domain (optional)
 "
 
-# Defaults
-args=""
-
-while getopts ":h?a:d:" opt; do
+while getopts ":h?a:f:d:" opt; do
 	case "$opt" in
 		h) echo "$usage" && exit 0 ;;
 		a) args=$OPTARG ;;
+		f) filter=$OPTARG ;;
 		d) domain=$OPTARG ;;
 	esac
 done
-# If an argument was passed but it was not the -a flag or the -d flag
-if [ -n "$1" ] && [ -z "$args" ] && [ -z "$domain" ]; then
-	echo "$usage"
-	exit 1
-fi
 
 script_path=$(dirname "$0")
 query_result=$(mktemp)
 
 if [ -n "$domain" ]; then
-	$script_path/query_dgraph.sh -t dql -q "
-		{
-			result(func: eq(Domain.name, \"$domain\")) @recurse {
-				Domain.name,
-				Domain.subdomains
-			}
-		}
-	" | jq -r '.data.result | .. | ."Domain.name"?'
-else
-	$script_path/query_dgraph.sh -q "
-		query {
-			queryDomain( $args ) {
-				name
-			}
-		}
-	" > $query_result
-	
-	# Try to get domains. If it fails, print the query output to stderr
-	if ! jq -r '.data.queryDomain | .[].name' $query_result 2>/dev/null; then
-		>&2 jq -c '.' $query_result
+	regex_filter="regexp(Domain.name, /^.*\\\\.$domain$/)"
+	if [ -n "$filter" ]; then
+		filter="$regex_filter and $filter"
+	else
+		filter="$regex_filter"
 	fi
 fi
+
+$script_path/query_dgraph.sh -t dql -q "
+	{
+		results(func: ge(Domain.level, 2) $(if [ -n "$args" ]; then echo ",$args"; fi))
+		@filter(not eq(Domain.skipScans, true) $(if [ -n "$filter" ]; then echo "and $filter"; fi))
+		{
+			Domain.name
+		}
+	}
+" > $query_result
+
+# Try to get domains. If it fails, print the query output to stderr
+jq -c -r '.data.results | .[] | ."Domain.name"' $query_result 2>/dev/null || >&2 jq -c '.' $query_result

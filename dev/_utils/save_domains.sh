@@ -45,5 +45,5 @@ jq '.[] | .level' $domains_json_file | sort -n -u | while read level; do
 	" > $query_file
 
 	# Send query to database
-	$script_path/query_dgraph.sh -f "$query_file" | jq -c .
+	$script_path/query_dgraph.sh -f "$query_file"
 done

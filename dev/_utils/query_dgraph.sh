@@ -77,4 +77,4 @@ body_file=$(mktemp) && echo "$body" > $body_file
 curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
 	--header "Content-Type: $content_type" \
 	--data "@$body_file" \
-| jq .
+| jq -c .

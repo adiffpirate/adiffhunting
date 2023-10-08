@@ -45,5 +45,5 @@ if [[ $DEBUG == "true" ]]; then
 	>&2 echo "[save_company.sh] $query"
 fi
 
-$script_path/query_dgraph.sh -q "$query" | jq .
-$script_path/save_domains.sh -f "$company_domains_csv_file" | jq .
+$script_path/query_dgraph.sh -q "$query"
+$script_path/save_domains.sh -f "$company_domains_csv_file"

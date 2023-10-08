@@ -63,4 +63,4 @@ if [[ $DEBUG == "true" ]]; then
 	>&2 echo "[save_dnsrecord.sh] cat $query_file"
 fi
 
-$script_path/query_dgraph.sh -f $query_file | jq .
+$script_path/query_dgraph.sh -f $query_file

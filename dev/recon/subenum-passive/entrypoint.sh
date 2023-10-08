@@ -4,46 +4,20 @@ get_oldest_enum_domain(){
 	filter=$1
 
 	# Get a domain without the "lastPassiveEnumeration" field
-	domain=$($UTILS/get_domains.sh -a "
-		filter: {
-			and: [
-				{ not: { skipScans: true } },
-				{ not: { has: lastPassiveEnumeration } },
-				{ $filter }
-			]
-		},
-		first: 1
-	")
-
+	domain=$($UTILS/get_domains.sh -f "not has(Domain.lastPassiveEnumeration) and $filter" -a 'first: 1')
 	# If all domains have "lastPassiveEnumeration", get the oldest
-	if [ -z "$domain" ]; then
-		domain=$($UTILS/get_domains.sh -a "
-			filter: {
-				and: [
-					{ not: { skipScans: true } },
-					{ $filter }
-				]
-			},
-			order: {
-				asc: lastPassiveEnumeration
-			},
-			first: 1
-		")
+	if [ -z $domain ]; then
+		domain=$($UTILS/get_domains.sh -f "$filter" -a 'orderasc: Domain.lastPassiveEnumeration, first: 1')
 	fi
 
-	echo $domain
-}
-
-update_last_enum_field(){
-	domain=$1
-
-	echo "[$domain] Updating lastPassiveEnumeration field"
-	if [ -z "$domain" ]; then
-		>&2 echo "WARNING: Skipping since no domain was provided."
+	if [ -z $domain ]; then
+		>&2 echo "No domains to enumerate. Trying again in 10 seconds"
+		sleep 10
 		return
 	fi
 
-	$UTILS/query_dgraph.sh -q "
+	>&2 echo "[$domain] Updating lastPassiveEnumeration field"
+	>&2 $UTILS/query_dgraph.sh -q "
 		mutation {
 			updateDomain(input: {
 				filter: { name: { eq: \"$domain\" } },
@@ -52,8 +26,11 @@ update_last_enum_field(){
 				domain { name }
 			}
 		}
-	" | jq -c .
+	"
+
+	echo $domain
 }
+
 
 run(){
 	tool=$1
@@ -74,7 +51,7 @@ run_and_save(){
 	domain=$2
 
 	if [ -z "$domain" ]; then
-		>&2 echo "WARNING: Skipping since no domain was provided."
+		>&2 echo "WARNING: Skipping since no domain was provided"
 		return
 	fi
 
@@ -82,7 +59,7 @@ run_and_save(){
 
 	echo 'name' > $subdomains_csv_file
 	run $tool $domain >> $subdomains_csv_file
-	$UTILS/save_domains.sh -f $subdomains_csv_file -t "$tool:passive" | jq -c .
+	>&2 $UTILS/save_domains.sh -f $subdomains_csv_file -t "$tool:passive"
 }
 
 while true; do
@@ -93,8 +70,7 @@ while true; do
 	# STEP 1: Run for the oldest "lastPassiveEnumeration" domain #
 	#------------------------------------------------------------#
 
-	domain=$(get_oldest_enum_domain 'level: { eq: 2 }')
-	update_last_enum_field $domain
+	domain=$(get_oldest_enum_domain 'eq(Domain.level, 2)')
 
 	echo "[$domain] Running: Amass"
 	run_and_save amass-passive $domain
@@ -110,8 +86,7 @@ while true; do
 	#--------------------------------------------------------------------#
 
 	for i in {1..100}; do
-		subdomain=$(get_oldest_enum_domain 'level: { gt: 2 }')
-		update_last_enum_field $subdomain
+		subdomain=$(get_oldest_enum_domain 'gt(Domain.level, 2)')
 
 		echo "[$subdomain] Running: Subfinder"
 		run_and_save subfinder $subdomain
