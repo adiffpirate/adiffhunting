@@ -3,25 +3,42 @@
 resolve(){
 	domains=$1
 	record_type=$2
-	dnsx_output=$3
+	record_type_uppercase=$(echo "$record_type" | tr '[:lower:]' '[:upper:]')
 
 	# Get updated list of resolvers once a day
 	resolvers_file=/tmp/resolvers.txt
 	if [ $(($(date +%s)-$(date +%s -r $resolvers_file || echo 86401))) -gt 86400 ]; then
-		>&2 wget https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt -O $resolvers_file
+		>&2 echo "Downloading resolvers file."
+		curl --silent https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt > $resolvers_file
 	fi
 	# Abort if resolvers file is empty (probably the download didn't succeed for some reason)
 	if [ ! -s $resolvers_file ]; then
-		>&2 "Resolvers file is empty. Aborting."
+		>&2 echo "Resolvers file is empty. Aborting."
 		rm -f $resolvers_file
 		exit 1
 	fi
 
-	# Run DNSX
-	dnsx \
-		-list $domains -resolver $resolvers_file \
-		-silent -omit-raw -threads 10 \
-		-json -$record_type -o $dnsx_output
+	# Sed pattern to escape quotes inside values
+	sed_pattern='s/([-_=+~;.!@#$%&*^" a-zA-Z0-9])"([-_=+~;.!@#$%&*^" a-zA-Z0-9])/\1\\"\2/g'
+
+	output_json_lines=$(mktemp)
+	# Run DNSX and parse its output as JSON Lines according to database schema
+	dnsx -list $domains -resolver $resolvers_file -silent -omit-raw -threads 10 -json -$record_type \
+	| while read line; do
+		if [[ $DEBUG == "true" ]]; then >&2 echo "Processing record: $line"; fi
+		# Run sed pattern twice to handle overlapping matches.
+		# Also run another sed to handle wronfully escaped "@" chars
+		echo "$line" | sed -E "$sed_pattern" | sed -E "$sed_pattern" | sed 's/\\@/@/g' | jq -c "{
+			name: ( \"$record_type_uppercase: \" + .host ),
+			domain: { name: .host },
+			type: \"$record_type_uppercase\",
+			values: ( .\"$record_type\" // [] ),
+			updatedAt: .timestamp
+		}" || >&2 echo "Error while processing record: $line"
+	done > $output_json_lines
+
+	# Print JSON Lines as JSON Array
+	cat $output_json_lines | jq -s
 }
 
 resolve_and_save(){
@@ -29,40 +46,22 @@ resolve_and_save(){
 	record_type=$2
 
 	output=$(mktemp)
-	resolve "$domains" "$record_type" "$output"
+	resolve $domains $record_type > $output
 
 	# Save records on database
 	if [ -s $output ]; then
 		query_file=$(mktemp)
 		echo "
 			mutation {
-				addDnsRecord(input: $(cat $output | parse_output | jq -s), upsert: true){
+				addDnsRecord(input: $(cat $output), upsert: true){
 					dnsRecord { name, values }
 				}
 			}
 		" > $query_file
 		$UTILS/query_dgraph.sh -f $query_file | jq -c .
+	else
+		echo "Nothing found."
 	fi
-}
-
-# Print output in JSON Lines format
-parse_output(){
-	record_type=$1
-	record_type_uppercase=$(echo "$record_type" | tr '[:lower:]' '[:upper:]')
-
-	# Sed pattern to escape quotes inside values
-	sed_pattern='s/([-_=+~;.!@#$%&*^" a-zA-Z0-9])"([-_=+~;.!@#$%&*^" a-zA-Z0-9])/\1\\"\2/g'
-	while read line; do
-		# Run sed pattern twice to handle overlapping matches.
-		# Also run another sed to handle wronfully escaped "@" chars
-		echo "$line" | sed -E "$sed_pattern" | sed -E "$sed_pattern" | sed 's/\\@/@/g' | jq -c "{
-			name: ( \"$record_type_uppercase: \" + .host ),
-			domain: { name: .host },
-			type: \"$record_type_uppercase\",
-			values: .\"$record_type\",
-			updatedAt: .timestamp
-		}" || >&2 echo "Error while processing: $line"
-	done
 }
 
 domains=$(mktemp)
