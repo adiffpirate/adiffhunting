@@ -21,7 +21,7 @@ applications:
     sources:
       - repoURL: https://charts.dgraph.io
         chart: dgraph
-        targetRevision: 0.0.19
+        targetRevision: 0.3.0
         helm:
           valueFiles:
             - $adiffhunting/ops/live/db/dgraph/values.yaml
