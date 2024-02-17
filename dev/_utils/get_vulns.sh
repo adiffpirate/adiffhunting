@@ -30,6 +30,7 @@ script_path=$(dirname "$0")
 $script_path/query_dgraph.sh -t dql -q "{
 	results(func: gt(Vuln.updatedAt, \"$(date -Iseconds -d "-$past_time")\")) {
 		Vuln.name,
+		Vuln.updatedAt,
 		Vuln.evidence { Evidence.target }
 	}
 }" | jq -r '.data.results | .[]'
