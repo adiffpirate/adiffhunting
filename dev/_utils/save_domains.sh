@@ -15,6 +15,7 @@ while getopts ":h?f:t:s:" opt; do
 		h) echo "$usage" && exit 0 ;;
 		f) domains_csv_file=$OPTARG ;;
 		t) tool=$OPTARG ;;
+		k) skip_fqdn_check='true' ;;
 	esac
 done
 if [ -z "$domains_csv_file" ]; then
