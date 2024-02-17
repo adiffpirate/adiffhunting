@@ -34,7 +34,7 @@ fi
 
 $script_path/query_dgraph.sh -t dql -q "
 	{
-		results(func: ge(Domain.level, 2) $(if [ -n "$args" ]; then echo ",$args"; fi))
+		results(func: anyofterms(Domain.type, \"root sub\") $(if [ -n "$args" ]; then echo ",$args"; fi))
 		@filter(not eq(Domain.skipScans, true) $(if [ -n "$filter" ]; then echo "and $filter"; fi))
 		{
 			Domain.name

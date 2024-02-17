@@ -66,27 +66,27 @@ while true; do
 
 	$UTILS/wait_for_db.sh
 
-	#------------------------------------------------------------#
-	# STEP 1: Run for the oldest "lastPassiveEnumeration" domain #
-	#------------------------------------------------------------#
+	#----------------------------------------------------------------#
+	# STEP 1: Run for the oldest "lastPassiveEnumeration" rootdomain #
+	#----------------------------------------------------------------#
 
-	domain=$(get_oldest_enum_domain 'eq(Domain.level, 2)')
+	rootdomain=$(get_oldest_enum_domain 'eq(Domain.type, "root")')
 
-	echo "[$domain] Running: Amass"
-	run_and_save amass-passive $domain
+	echo "[$rootdomain] Running: Amass"
+	run_and_save amass-passive $rootdomain
 
-	echo "[$domain] Running: Subfinder"
-	run_and_save subfinder $domain
+	echo "[$rootdomain] Running: Subfinder"
+	run_and_save subfinder $rootdomain
 
-	echo "[$domain] Running: Chaos"
-	run_and_save chaos $domain
+	echo "[$rootdomain] Running: Chaos"
+	run_and_save chaos $rootdomain
 
 	#--------------------------------------------------------------------#
 	# STEP 2: Run for the 100 oldest "lastPassiveEnumeration" subdomains #
 	#--------------------------------------------------------------------#
 
 	for i in {1..100}; do
-		subdomain=$(get_oldest_enum_domain 'gt(Domain.level, 2)')
+		subdomain=$(get_oldest_enum_domain 'eq(Domain.type, "sub")')
 
 		echo "[$subdomain] Running: Subfinder"
 		run_and_save subfinder $subdomain
