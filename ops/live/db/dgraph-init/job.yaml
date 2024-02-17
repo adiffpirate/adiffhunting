@@ -13,7 +13,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: dgraph-init
-          image: adiffhunting/db-dgraph-init:172c0bd
+          image: adiffhunting/db-dgraph-init:3aaccff
           env:
             - name: DEBUG
               value: "false"
