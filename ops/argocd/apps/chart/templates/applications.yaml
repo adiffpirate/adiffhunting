@@ -15,6 +15,8 @@ spec:
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly={{ $val.autoSync.onlyOutOfSync }}
+      - ServerSideApply={{ $val.autoSync.serverSideApply }}
     automated:
       selfHeal: {{ $val.autoSync.selfHeal }}
       prune: {{ $val.autoSync.prune }}

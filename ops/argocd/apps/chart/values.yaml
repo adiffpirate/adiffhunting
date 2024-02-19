@@ -1,9 +1,11 @@
 .: &default
   project: default
-  autoSync:
+  autoSync: &defaultAutoSync
     enabled: true
     prune: true
     selfHeal: true
+    onlyOutOfSync: true
+    serverSideApply: false
   destination: &defaultDestination
     server: https://kubernetes.default.svc
 
@@ -51,6 +53,9 @@ applications:
           name: *sopsPlugin
         ref: adiffhunting
     <<: *default
+    autoSync:
+      <<: *defaultAutoSync
+      serverSideApply: true
     destination:
       <<: *defaultDestination
       namespace: observability
