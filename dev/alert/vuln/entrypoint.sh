@@ -31,7 +31,7 @@ while true; do
 					\"name\": \"$(echo "$vuln" | yq -r '.["Vuln.name"]')\",
 					\"notified\": true
 				}], upsert: true){
-					vuln { name }
+					vuln { name, notified }
 				}
 			}
 		" | jq -c .
