@@ -60,17 +60,36 @@ applications:
       <<: *defaultDestination
       namespace: observability
 
-  loki-stack:
+  promtail:
     sources:
       - repoURL: https://grafana.github.io/helm-charts
-        chart: loki-stack
-        targetRevision: 2.10.1
+        chart: promtail
+        targetRevision: 6.15.5
         helm:
           valueFiles:
-            - $adiffhunting/ops/live/observability/loki-stack/values.yaml
+            - $adiffhunting/ops/live/observability/promtail/values.yaml
       - repoURL: *defaultRepoURL
         targetRevision: *defaultTargetRevision
-        path: ops/live/observability/loki-stack
+        path: ops/live/observability/promtail
+        plugin:
+          name: *sopsPlugin
+        ref: adiffhunting
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: observability
+
+  loki:
+    sources:
+      - repoURL: https://grafana.github.io/helm-charts
+        chart: loki
+        targetRevision: 5.43.1
+        helm:
+          valueFiles:
+            - $adiffhunting/ops/live/observability/loki/values.yaml
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/observability/loki
         plugin:
           name: *sopsPlugin
         ref: adiffhunting

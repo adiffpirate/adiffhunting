@@ -1,0 +1,23 @@
+# Schedule on all nodes with high priority
+priorityClassName: system-node-critical
+tolerations:
+  - operator: Exists
+
+# https://github.com/grafana/loki/issues/7081#issuecomment-1239386350
+config:
+  clients:
+    - url: http://loki-gateway/loki/api/v1/push
+      tenant_id: logs
+
+resources:
+  limits:
+    cpu: 125m
+    memory: 256Mi
+  requests:
+    cpu: 125m
+    memory: 256Mi
+
+serviceMonitor:
+  enabled: true
+  labels:
+    release: prometheus-stack

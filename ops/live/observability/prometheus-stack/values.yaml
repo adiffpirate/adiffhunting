@@ -28,7 +28,7 @@ grafana:
   additionalDataSources:
     - name: Loki
       type: loki
-      url: http://loki-stack-read:3100
+      url: http://loki-read:3100
       jsonData:
         timeout: 1800
         maxLines: 1000
