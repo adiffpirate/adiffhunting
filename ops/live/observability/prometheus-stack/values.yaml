@@ -1,0 +1,42 @@
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+prometheus-node-exporter:
+  priorityClassName: system-node-critical
+
+grafana:
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: false
+          editable: false
+          options:
+            path: /var/lib/grafana/dashboards/default
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki-read:3100
+      jsonData:
+        timeout: 1800
+        maxLines: 1000
+        httpHeaderName1: X-Scope-OrgID # https://github.com/grafana/loki/issues/7081#issuecomment-1239386350
+      secureJsonData:
+        httpHeaderValue1: logs
+  dashboards:
+    default:
+      promtail:
+        gnetId: 15443
+        revision: 2
