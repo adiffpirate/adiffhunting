@@ -1,11 +1,12 @@
 #!/bin/bash
-set -eo pipefail
+set -eEo pipefail
+trap 'echo "ERROR: Command failed"; exit 1' ERR
 
 $UTILS/wait_for_db.sh
 
 # Create schemas
 echo "Creating Schemas"
-curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
+curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 	type Company {
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])

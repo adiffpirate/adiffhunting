@@ -1,5 +1,6 @@
 #!/bin/bash
-set -eo pipefail
+set -eEo pipefail
+trap 'echo "ERROR: Command failed"; exit 1' ERR
 
 usage="$(basename "$0") [-h|a|f|d]
 

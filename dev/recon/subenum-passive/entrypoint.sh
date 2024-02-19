@@ -1,5 +1,6 @@
 #!/bin/bash
-set -eo pipefail
+set -eEo pipefail
+trap 'echo "ERROR: Command failed"; exit 1' ERR
 
 get_oldest_enum_domain(){
 	filter=$1

@@ -1,5 +1,6 @@
 #!/bin/bash
-set -eo pipefail
+set -eEo pipefail
+trap 'echo "ERROR: Command failed"; exit 1' ERR
 
 usage="$(basename "$0") [-h|q|f|t]
 
@@ -75,7 +76,7 @@ fi
 
 # Send request
 body_file=$(mktemp) && echo "$body" > $body_file
-curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
+curl --no-progress-meter --fail $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
 	--header "Content-Type: $content_type" \
 	--data "@$body_file" \
 | jq -c .

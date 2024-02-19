@@ -1,5 +1,6 @@
 #!/bin/bash
-set -eo pipefail
+set -eEo pipefail
+trap 'echo "ERROR: Command failed"; exit 1' ERR
 
 resolve(){
 	domains=$1
@@ -10,7 +11,7 @@ resolve(){
 	resolvers_file=/tmp/resolvers.txt
 	if [ $(($(date +%s)-$(date +%s -r $resolvers_file || echo 86401))) -gt 86400 ]; then
 		>&2 echo "Downloading resolvers file"
-		curl --silent https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt > $resolvers_file
+		curl --no-progress-meter --fail https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt > $resolvers_file
 	fi
 	# Abort if resolvers file is empty (probably the download didn't succeed for some reason)
 	if [ ! -s "$resolvers_file" ]; then
