@@ -13,12 +13,6 @@ resolve(){
 		>&2 echo "Downloading resolvers file"
 		curl --no-progress-meter --fail https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt > $resolvers_file
 	fi
-	# Abort if resolvers file is empty (probably the download didn't succeed for some reason)
-	if [ ! -s "$resolvers_file" ]; then
-		>&2 echo "Resolvers file is empty. Aborting"
-		rm -f $resolvers_file
-		exit 1
-	fi
 
 	# Sed pattern to escape quotes inside values
 	sed_pattern='s/([-_=+~;.!@#$%&*^" a-zA-Z0-9])"([-_=+~;.!@#$%&*^" a-zA-Z0-9])/\1\\"\2/g'
