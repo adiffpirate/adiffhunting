@@ -81,12 +81,12 @@ while true; do
 	echo "[$rootdomain] Running: Chaos"
 	run_and_save chaos $rootdomain
 
-	#--------------------------------------------------------------------#
-	# STEP 2: Run for the 100 oldest "lastPassiveEnumeration" subdomains #
-	#--------------------------------------------------------------------#
+	#-----------------------------------------------------------------------------------#
+	# STEP 2: Run for the 100 oldest "lastPassiveEnumeration" rootdomains or subdomains #
+	#-----------------------------------------------------------------------------------#
 
 	for i in {1..100}; do
-		subdomain=$(get_oldest_enum_domain 'eq(Domain.type, "sub")')
+		subdomain=$(get_oldest_enum_domain 'anyofterms(Domain.type, "root sub")')
 
 		echo "[$subdomain] Running: Subfinder"
 		run_and_save subfinder $subdomain
