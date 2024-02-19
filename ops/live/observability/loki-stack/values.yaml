@@ -94,10 +94,10 @@ loki:
           cpu: 100m
           memory: 128Mi
 
-minio:
-  enabled: true
-  persistence:
-      size: 10Gi
+  minio:
+    enabled: true
+    persistence:
+        size: 10Gi
 
 
 promtail:
