@@ -1,6 +1,9 @@
 #!/bin/bash
+
+script_path=$(dirname "$0")
+
 set -eEo pipefail
-trap 'echo "ERROR: Command failed"; exit 1' ERR
+trap '$script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 usage="$(basename "$0") [-h|q|f|t]
 

@@ -1,6 +1,9 @@
 #!/bin/bash
+
+script_path=$(dirname "$0")
+
 set -eEo pipefail
-trap 'echo "ERROR: Command failed"; exit 1' ERR
+trap '$script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 usage="$(basename "$0") [-h|f]
 
@@ -22,7 +25,6 @@ if [ -z "$records_csv_file" ] || [[ "$(head -n1 $records_csv_file)" != "domain|t
 	exit 1
 fi
 
-script_path=$(dirname "$0")
 now=$(date -Iseconds)
 
 # Parse CSV

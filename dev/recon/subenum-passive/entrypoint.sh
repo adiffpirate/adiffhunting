@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eEo pipefail
-trap 'echo "ERROR: Command failed"; exit 1' ERR
+trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 get_oldest_enum_domain(){
 	filter=$1

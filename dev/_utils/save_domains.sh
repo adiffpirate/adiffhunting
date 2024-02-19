@@ -1,6 +1,9 @@
 #!/bin/bash
+
+script_path=$(dirname "$0")
+
 set -eEo pipefail
-trap 'echo "ERROR: Command failed"; exit 1' ERR
+trap '$script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 usage="$(basename "$0") [-h|f|t]
 
@@ -25,7 +28,6 @@ if [ -z "$domains_csv_file" ]; then
 	exit 1
 fi
 
-script_path=$(dirname "$0")
 domains_json_file=$(mktemp)
 
 # Write JSON from domains file

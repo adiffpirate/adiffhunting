@@ -1,6 +1,9 @@
 #!/bin/bash
+
+script_path=$(dirname "$0")
+
 set -eEo pipefail
-trap 'echo "ERROR: Command failed"; exit 1' ERR
+trap '$script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 usage="$(basename "$0") [-h|t|a]
 
@@ -31,7 +34,6 @@ if [ -n "$1" ] && [ -z "$record_types" ]; then
 	exit 1
 fi
 
-script_path=$(dirname "$0")
 query_result=$(mktemp)
 
 $script_path/query_dgraph.sh -t dql -q "

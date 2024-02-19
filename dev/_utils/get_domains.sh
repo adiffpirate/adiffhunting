@@ -1,6 +1,9 @@
 #!/bin/bash
+
+script_path=$(dirname "$0")
+
 set -eEo pipefail
-trap 'echo "ERROR: Command failed"; exit 1' ERR
+trap '$script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 usage="$(basename "$0") [-h|a|f|d]
 
@@ -22,7 +25,6 @@ while getopts ":h?a:f:d:" opt; do
 	esac
 done
 
-script_path=$(dirname "$0")
 query_result=$(mktemp)
 
 if [ -n "$domain" ]; then
