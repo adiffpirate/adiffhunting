@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 usage="$(basename "$0") [-h|f]
 
@@ -59,7 +60,7 @@ echo "
 	}
 " > $query_file
 
-if [[ $DEBUG == "true" ]]; then
+if [[ "$DEBUG" == "true" ]]; then
 	>&2 echo "[save_dnsrecord.sh] cat $query_file"
 fi
 

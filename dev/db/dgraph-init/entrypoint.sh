@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 $UTILS/wait_for_db.sh
 

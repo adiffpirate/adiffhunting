@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 get_oldest_enum_domain(){
 	filter=$1
@@ -10,7 +11,7 @@ get_oldest_enum_domain(){
 		domain=$($UTILS/get_domains.sh -f "$filter" -a 'orderasc: Domain.lastPassiveEnumeration, first: 1')
 	fi
 
-	if [ -z $domain ]; then
+	if [ -z "$domain" ]; then
 		>&2 echo "No domains to enumerate. Trying again in 10 seconds"
 		sleep 10
 		return
@@ -36,11 +37,11 @@ run(){
 	tool=$1
 	domain=$2
 
-	if [[ $tool == "amass-passive" ]]; then
+	if [[ "$tool" == "amass-passive" ]]; then
 		timeout 600 amass enum -silent -passive -nocolor -d $domain
-	elif [[ $tool == "subfinder" ]]; then
+	elif [[ "$tool" == "subfinder" ]]; then
 		subfinder -silent -d $domain
-	elif [[ $tool == "chaos" ]] && [ -n "$CHAOS_KEY" ]; then
+	elif [[ "$tool" == "chaos" ]] && [ -n "$CHAOS_KEY" ]; then
 		# Chaos doesn't accept domains which levels are greater than 2, so we strip the domain and filter the results
 		chaos -silent -d $(echo $domain | grep -Eo '[^.]+\.[^.]+$') | grep -E "^.*\.$domain$"
 	fi

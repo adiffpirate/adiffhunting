@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 usage="$(basename "$0") [-h|q|f|t]
 
@@ -48,7 +49,7 @@ fi
 #   3. Remove quotes from keys
 query=$(echo "$initial_query" | sed 's/\\n//g' | sed 's/\\t//g' | sed 's/\\r//g' | while read line; do echo -n "$line"; done | sed -E 's/"([^"]*)":/\1:/g')
 
-if [[ $DEBUG == "true" ]]; then
+if [[ "$DEBUG" == "true" ]]; then
 	>&2 echo "[query_dgraph.sh] $query"
 fi
 

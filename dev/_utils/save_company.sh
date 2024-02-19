@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 usage="$(basename "$0") [-h|c|f]
 
@@ -41,7 +42,7 @@ query="
 	}
 "
 
-if [[ $DEBUG == "true" ]]; then
+if [[ "$DEBUG" == "true" ]]; then
 	>&2 echo "[save_company.sh] $query"
 fi
 

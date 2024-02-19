@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 resolve(){
 	domains=$1
@@ -12,7 +13,7 @@ resolve(){
 		curl --silent https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt > $resolvers_file
 	fi
 	# Abort if resolvers file is empty (probably the download didn't succeed for some reason)
-	if [ ! -s $resolvers_file ]; then
+	if [ ! -s "$resolvers_file" ]; then
 		>&2 echo "Resolvers file is empty. Aborting"
 		rm -f $resolvers_file
 		exit 1
@@ -25,7 +26,7 @@ resolve(){
 	# Run DNSX and parse its output as JSON Lines according to database schema
 	dnsx -list $domains -resolver $resolvers_file -silent -omit-raw -threads 10 -json -$record_type \
 	| while read line; do
-		if [[ $DEBUG == "true" ]]; then >&2 echo "Processing record: $line"; fi
+		if [[ "$DEBUG" == "true" ]]; then >&2 echo "Processing record: $line"; fi
 		# Run sed pattern twice to handle overlapping matches.
 		# Also run another sed to handle wronfully escaped "@" chars
 		echo "$line" | sed -E "$sed_pattern" | sed -E "$sed_pattern" | sed 's/\\@/@/g' | jq -c "{
@@ -49,7 +50,7 @@ resolve_and_save(){
 	resolve $domains $record_type > $output
 
 	# Save records on database
-	if [ -s $output ]; then
+	if [ -s "$output" ]; then
 		query_file=$(mktemp)
 		echo "
 			mutation {
@@ -73,16 +74,16 @@ while true; do
 	# Get 100 domains without the "lastProbe" field
 	$UTILS/get_domains.sh -f 'not has(Domain.lastProbe)' -a 'first: 100' > $domains
 	# If all domains have "lastProbe", get the 100 oldest
-	if [ ! -s $domains ]; then
+	if [ ! -s "$domains" ]; then
 		$UTILS/get_domains.sh -a 'orderasc: Domain.lastProbe, first: 100' > $domains
 	fi
 
-	if [[ $DEBUG == "true" ]]; then
+	if [[ "$DEBUG" == "true" ]]; then
 		echo "Will probe the following domains:"
 		cat $domains
 	fi
 
-	if [ ! -s $domains ]; then
+	if [ ! -s "$domains" ]; then
 		echo "No domains to probe. Trying again in 10 seconds"
 		sleep 10
 		continue
