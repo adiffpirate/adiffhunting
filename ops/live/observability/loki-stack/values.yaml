@@ -5,6 +5,12 @@ loki:
     priorityClassName: system-cluster-critical
 
   loki:
+    storage:
+      type: s3
+      bucketNames:
+        chunks: chunks
+        ruler: ruler
+        admin: admin
     commonConfig:
       replication_factor: 1
 
@@ -88,10 +94,10 @@ loki:
           cpu: 100m
           memory: 128Mi
 
-  minio:
-    enabled: true
-    persistence:
-        size: 10Gi
+minio:
+  enabled: true
+  persistence:
+      size: 10Gi
 
 
 promtail:
@@ -105,7 +111,7 @@ promtail:
   # https://github.com/grafana/loki/issues/7081#issuecomment-1239386350
   config:
     clients:
-      - url: http://loki-gateway/loki/api/v1/push
+      - url: http://loki-stack-gateway/loki/api/v1/push
         tenant_id: logs
 
   resources:
