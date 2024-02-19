@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: vuln
+  name: vuln
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vuln
+  template:
+    metadata:
+      labels:
+        app: vuln
+    spec:
+      containers:
+        - name: vuln
+          image: adiffhunting/alert-vuln:init
+          env:
+            - name: DEBUG
+              value: "false"
+            - name: DGRAPH_ALPHA_HOST
+              value: "dgraph-alpha.db"
+            - name: DGRAPH_ALPHA_HTTP_PORT
+              value: "8080"
+            - name: TELEGRAM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vuln
+                  key: telegram-api-key
+            - name: TELEGRAM_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vuln
+                  key: telegram-chat-id
+          resources:
+            requests:
+              cpu: 50m
+              memory: 54Mi
+            limits:
+              memory: 54Mi

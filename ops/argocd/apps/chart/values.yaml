@@ -36,6 +36,18 @@ applications:
       <<: *defaultDestination
       namespace: db
 
+  alert:
+    sources:
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/alert
+        plugin:
+          name: *sopsPlugin
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: alert
+
   recon:
     sources:
       - repoURL: *defaultRepoURL

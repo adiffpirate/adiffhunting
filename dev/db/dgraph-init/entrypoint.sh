@@ -32,7 +32,7 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 	type Tool {
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
-		type: String! @search(by: [hash, regexp])
+		type: String @search(by: [hash, regexp])
 		subdomains: [Domain] @hasInverse(field: foundBy)
 		vulns: [Vuln] @hasInverse(field: foundBy)
 	}
@@ -41,8 +41,8 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
 		domain: Domain @hasInverse(field: dnsRecords)
-		type: String! @search(by: [hash])
-		values: [String!]! @search(by: [hash, regexp])
+		type: String @search(by: [hash])
+		values: [String] @search(by: [hash, regexp])
 		updatedAt: DateTime @search(by: [hour])
 	}
 
@@ -50,13 +50,14 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
 		domain: Domain @hasInverse(field: vulns)
-		title: String! @search(by: [hash, regexp])
+		title: String @search(by: [hash, regexp])
 		class: VulnClass @hasInverse(field: vulns)
 		description: String @search(by: [hash, regexp])
 		severity: String @search(by: [hash])
 		references: [String] @search(by: [hash, regexp])
 		evidence: Evidence
 		foundBy: [Tool] @hasInverse(field: vulns)
+		notified: Boolean @search
 		updatedAt: DateTime @search(by: [hour])
 	}
 
