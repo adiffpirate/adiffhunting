@@ -39,7 +39,7 @@ applications:
   prometheus-stack:
     sources:
       - repoURL: https://prometheus-community.github.io/helm-charts
-        chart: prometheus-stack
+        chart: kube-prometheus-stack
         targetRevision: 56.6.2
         helm:
           valueFiles:
@@ -57,7 +57,7 @@ applications:
 
   loki-stack:
     sources:
-      - repoURL: https://prometheus-community.github.io/helm-charts
+      - repoURL: https://grafana.github.io/helm-charts
         chart: loki-stack
         targetRevision: 2.10.1
         helm:
