@@ -94,6 +94,9 @@ applications:
           name: *sopsPlugin
         ref: adiffhunting
     <<: *default
+    autoSync:
+      <<: *defaultAutoSync
+      serverSideApply: true
     destination:
       <<: *defaultDestination
       namespace: observability
