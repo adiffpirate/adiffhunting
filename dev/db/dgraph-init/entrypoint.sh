@@ -41,7 +41,7 @@ curl --silent $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
 		domain: Domain @hasInverse(field: dnsRecords)
-		type: String @search(by: [hash])
+		type: String @search(by: [hash, term])
 		values: [String] @search(by: [hash, regexp])
 		updatedAt: DateTime @search(by: [hour])
 	}

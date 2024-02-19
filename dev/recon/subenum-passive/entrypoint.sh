@@ -3,7 +3,7 @@
 get_oldest_enum_domain(){
 	filter=$1
 
-	# Get a domain without the "lastPassiveEnumeration" field ordered by level so higher level domains are scanned first
+	# Get a domain without the "lastPassiveEnumeration" field ordered by level so that higher level domains are scanned first
 	domain=$($UTILS/get_domains.sh -f "not has(Domain.lastPassiveEnumeration) and $filter" -a 'orderasc: Domain.level, first: 1')
 	# If all domains have "lastPassiveEnumeration", get the oldest
 	if [ -z $domain ]; then

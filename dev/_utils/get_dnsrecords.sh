@@ -6,7 +6,7 @@ Get all dns records from DGraph using DQL
 
 flags:
 	-h show this help text
-	-t filter by type (optional) (can be: 'A', 'AAAA', 'CNAME', 'NS', 'TXT', 'SRV', 'PTR', 'MX', 'SOA', 'CAA')
+	-t filter by types (delimited by space) (optional) (can be: 'A', 'AAAA', 'CNAME', 'NS', 'TXT', 'SRV', 'PTR', 'MX', 'SOA', 'CAA')
 	-f domain filter (optional)
 	-a args to add on function invocation (optional)
 "
@@ -18,13 +18,13 @@ while getopts ":h?t:f:a:" opt; do
 	case "$opt" in
 		h) echo "$usage" && exit 0 ;;
 		a) args=$OPTARG ;;
-		t) record_type=$(echo $OPTARG | tr '[:lower:]' '[:upper:]');;
+		t) record_types=$(echo $OPTARG | tr '[:lower:]' '[:upper:]');;
 		f) filter=$OPTARG ;;
 		a) args=$OPTARG ;;
 	esac
 done
 # If an argument was passed but it was not the -t flag
-if [ -n "$1" ] && [ -z "$record_type" ]; then
+if [ -n "$1" ] && [ -z "$record_types" ]; then
 	echo "$usage"
 	exit 1
 fi
@@ -35,13 +35,13 @@ query_result=$(mktemp)
 $script_path/query_dgraph.sh -t dql -q "
 	{
 		record as f(func: has(DnsRecord.values))
-		$(if [ -n "$record_type" ]; then echo "@filter(eq(DnsRecord.type, \"$record_type\"))"; fi)
+		$(if [ -n "$record_types" ]; then echo "@filter(anyofterms(DnsRecord.type, \"$record_types\"))"; fi)
 		{
 			domain as DnsRecord.domain
 		}
 
 		results(func: uid(domain) $(if [ -n "$args" ]; then echo ",$args"; fi))
-		$(if [ -n "$filter" ]; then echo "@filter($filter)"; fi)
+		@filter(not eq(Domain.skipScans, true) $(if [ -n "$filter" ]; then echo "and $filter"; fi))
 		{
 			Domain.name,
 			Domain.dnsRecords @filter(uid(record)) {
