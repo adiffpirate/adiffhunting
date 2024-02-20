@@ -7,6 +7,8 @@ zero:
 
 alpha:
   replicaCount: 1
+  service:
+    type: NodePort
   persistence:
     size: 10Gi
   extraFlags: "--security whitelist=0.0.0.0/0"

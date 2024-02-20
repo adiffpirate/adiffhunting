@@ -1,13 +1,16 @@
 locals {
   argocd_values = <<-YAML
+    server:
+      service:
+        type: NodePort
+        nodePortHttp: 30001
+
     configs:
       repositories:
         adiffhunting:
           url: https://github.com/adiffpirate/adiffhunting
           name: repo-adiffhunting
           type: git
-          username: ${var.github_username}
-          password: ${var.github_token}
 
     repoServer:
       env:
@@ -81,6 +84,15 @@ locals {
               name: plugin-plain-and-encrypted-yaml-files
             - mountPath: /sops
               name: sops-private-key
+
+    dex:
+      enabled: false
+
+    notifications:
+      enabled: false
+
+    applicationSet:
+      enabled: false
   YAML
 }
 

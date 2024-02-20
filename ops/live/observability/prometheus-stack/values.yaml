@@ -13,6 +13,9 @@ prometheus-node-exporter:
   priorityClassName: system-node-critical
 
 grafana:
+  service:
+    type: NodePort
+    nodePort: 30002
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1

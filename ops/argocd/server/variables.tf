@@ -15,15 +15,3 @@ variable "sops_private_key" {
   type        = string
   sensitive   = true
 }
-
-variable "github_username" {
-  description = "Username to authenticate on GitHub"
-  type        = string
-  default     = "adiffpirate"
-}
-
-variable "github_token" {
-  description = "Token to authenticate on GitHub"
-  type        = string
-  sensitive   = true
-}
