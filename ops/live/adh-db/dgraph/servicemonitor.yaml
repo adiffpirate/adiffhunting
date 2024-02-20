@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dgraph-zero
+spec:
+  selector:
+    matchLabels:
+      monitor: zero-dgraph-io
+  endpoints:
+    - port: http-zero
+      path: /debug/prometheus_metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dgraph-alpha
+spec:
+  selector:
+    matchLabels:
+      monitor: alpha-dgraph-io
+  endpoints:
+    - port: http-alpha
+      path: /debug/prometheus_metrics
