@@ -21,7 +21,7 @@ spec:
             - name: DEBUG
               value: "false"
             - name: DGRAPH_ALPHA_HOST
-              value: "dgraph-alpha.db"
+              value: "dgraph-alpha.adh-db"
             - name: DGRAPH_ALPHA_HTTP_PORT
               value: "8080"
             - name: CHAOS_KEY

@@ -11,11 +11,7 @@
 
 .: &defaultRepoURL https://github.com/adiffpirate/adiffhunting
 .: &defaultTargetRevision master
-
 .: &sopsPlugin plain-and-encrypted-yaml-files
-.: &dbNamespace db
-.: &reconNamespace recon
-.: &exploitNamespace exploit
 
 applications:
 
