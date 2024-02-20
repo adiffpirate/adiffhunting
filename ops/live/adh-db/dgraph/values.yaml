@@ -4,6 +4,12 @@ zero:
   replicaCount: 3
   persistence:
     size: 3Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    limits:
+      memory: 200Mi
 
 alpha:
   replicaCount: 3
@@ -12,3 +18,9 @@ alpha:
   persistence:
     size: 10Gi
   extraFlags: "--security whitelist=0.0.0.0/0"
+  resources:
+    requests:
+      cpu: "1"
+      memory: 2Gi
+    limits:
+      memory: 2Gi
