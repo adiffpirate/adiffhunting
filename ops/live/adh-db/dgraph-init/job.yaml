@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: dgraph-init
+  generateName: adh-db-dgraph-init
   annotations:
     argocd.argoproj.io/hook: PostSync
 spec:
@@ -12,7 +12,7 @@ spec:
     spec:
       restartPolicy: Never
       containers:
-        - name: dgraph-init
+        - name: adh-db-dgraph-init
           image: adiffhunting/db-dgraph-init:d4c3c25
           env:
             - name: DEBUG
@@ -28,10 +28,10 @@ spec:
             limits:
               memory: 32Mi
           volumeMounts:
-            - name: init-data
+            - name: adh-db-dgraph-init-data
               mountPath: /src/data
               readOnly: true
       volumes:
-        - name: init-data
+        - name: adh-db-dgraph-init-data
           secret:
-            secretName: init-data
+            secretName: adh-db-dgraph-init-data

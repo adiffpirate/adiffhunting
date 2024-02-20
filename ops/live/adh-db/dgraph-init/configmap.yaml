@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: dgraph-init-workaround
+  name: adh-db-dgraph-init-workaround
 data:
   description: "Workaround to force hook job creation when image tag changes"
   image: adiffhunting/db-dgraph-init:d4c3c25

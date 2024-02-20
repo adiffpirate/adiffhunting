@@ -2,20 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: vuln
-  name: vuln
+    app: adh-alert-vuln
+  name: adh-alert-vuln
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vuln
+      app: adh-alert-vuln
   template:
     metadata:
       labels:
-        app: vuln
+        app: adh-alert-vuln
     spec:
       containers:
-        - name: vuln
+        - name: adh-alert-vuln
           image: adiffhunting/alert-vuln:d4c3c25
           env:
             - name: DEBUG
@@ -27,12 +27,12 @@ spec:
             - name: TELEGRAM_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: vuln
+                  name: adh-alert-vuln
                   key: telegram-api-key
             - name: TELEGRAM_CHAT_ID
               valueFrom:
                 secretKeyRef:
-                  name: vuln
+                  name: adh-alert-vuln
                   key: telegram-chat-id
           resources:
             requests:

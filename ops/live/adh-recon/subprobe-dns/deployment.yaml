@@ -2,20 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: subprobe-dns
-  name: subprobe-dns
+    app: adh-recon-subprobe-dns
+  name: adh-recon-subprobe-dns
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: subprobe-dns
+      app: adh-recon-subprobe-dns
   template:
     metadata:
       labels:
-        app: subprobe-dns
+        app: adh-recon-subprobe-dns
     spec:
       containers:
-        - name: subprobe-dns
+        - name: adh-recon-subprobe-dns
           image: adiffhunting/recon-subprobe-dns:d4c3c25
           env:
             - name: DEBUG

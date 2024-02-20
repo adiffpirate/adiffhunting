@@ -19,7 +19,7 @@
 
 applications:
 
-  db:
+  adh-db:
     sources:
       - repoURL: https://charts.dgraph.io
         chart: dgraph
@@ -29,14 +29,50 @@ applications:
             - $adiffhunting/ops/live/db/dgraph/values.yaml
       - repoURL: *defaultRepoURL
         targetRevision: *defaultTargetRevision
-        path: ops/live/db
+        path: ops/live/adh-db
         plugin:
           name: *sopsPlugin
         ref: adiffhunting
     <<: *default
     destination:
       <<: *defaultDestination
-      namespace: db
+      namespace: adh-db
+
+  adh-alert:
+    sources:
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/adh-alert
+        plugin:
+          name: *sopsPlugin
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: adh-alert
+
+  adh-recon:
+    sources:
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/adh-recon
+        plugin:
+          name: *sopsPlugin
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: adh-recon
+
+  adh-exploit:
+    sources:
+      - repoURL: *defaultRepoURL
+        targetRevision: *defaultTargetRevision
+        path: ops/live/adh-exploit
+        plugin:
+          name: *sopsPlugin
+    <<: *default
+    destination:
+      <<: *defaultDestination
+      namespace: adh-exploit
 
   prometheus-stack:
     sources:
@@ -100,39 +136,3 @@ applications:
     destination:
       <<: *defaultDestination
       namespace: observability
-
-  alert:
-    sources:
-      - repoURL: *defaultRepoURL
-        targetRevision: *defaultTargetRevision
-        path: ops/live/alert
-        plugin:
-          name: *sopsPlugin
-    <<: *default
-    destination:
-      <<: *defaultDestination
-      namespace: alert
-
-  recon:
-    sources:
-      - repoURL: *defaultRepoURL
-        targetRevision: *defaultTargetRevision
-        path: ops/live/recon
-        plugin:
-          name: *sopsPlugin
-    <<: *default
-    destination:
-      <<: *defaultDestination
-      namespace: recon
-
-  exploit:
-    sources:
-      - repoURL: *defaultRepoURL
-        targetRevision: *defaultTargetRevision
-        path: ops/live/exploit
-        plugin:
-          name: *sopsPlugin
-    <<: *default
-    destination:
-      <<: *defaultDestination
-      namespace: exploit
