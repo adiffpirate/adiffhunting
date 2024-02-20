@@ -6,7 +6,7 @@ get_domain(){
 	filter='anyofterms(Domain.type, "root sub")'
 
 	# PRIO 1: Get a rootdomain without the "lastPassiveEnumeration" field
-	domain=$($UTILS/get_domains.sh -f 'eq(Domain.type, "root") not has(Domain.lastPassiveEnumeration)' -a 'first: 1')
+	domain=$($UTILS/get_domains.sh -f 'eq(Domain.type, "root") and not has(Domain.lastPassiveEnumeration)' -a 'first: 1')
 
 	# PRIO 2: Get a rootdomain whose "lastPassiveEnumeration" is older than $ROOTDOMAIN_SCAN_COOLDOWN
 	if [ -z "$domain" ]; then
@@ -15,7 +15,7 @@ get_domain(){
 
 	# PRIO 3: Get a subdomain without the "lastPassiveEnumeration" field ordered by level so that higher levels are scanned first
 	if [ -z "$domain" ]; then
-		domain=$($UTILS/get_domains.sh -f 'eq(Domain.type, "sub") not has(Domain.lastPassiveEnumeration)' -a 'orderasc: Domain.level, first: 1')
+		domain=$($UTILS/get_domains.sh -f 'eq(Domain.type, "sub") and not has(Domain.lastPassiveEnumeration)' -a 'orderasc: Domain.level, first: 1')
 	fi
 
 	# PRIO 4: Get a subdomain with the oldest "lastPassiveEnumeration"
@@ -53,7 +53,7 @@ run(){
 		subfinder -silent -d $domain
 	elif [[ "$tool" == "chaos" ]] && [ -n "$CHAOS_KEY" ]; then
 		# Chaos doesn't accept domains which levels are greater than 2, so we strip the domain and filter the results
-		chaos -silent -d $(echo $domain | grep -Eo '[^.]+\.[^.]+$') | grep -E "^.*\.$domain$"
+		chaos -silent -d $(echo $domain | grep -Eo '[^.]+\.[^.]+$') | sed -n "/^.*\.$domain$/p"
 	fi
 }
 
