@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eEo pipefail
-trap 'echo "ERROR: Command failed"; exit 1' ERR
+trap '>&2 echo "ERROR: Command failed"; exit 1' ERR
 
 while true; do
 
