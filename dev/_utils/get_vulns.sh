@@ -34,6 +34,8 @@ $script_path/query_dgraph.sh -t dql -q "{
 	results(func: gt(Vuln.updatedAt, \"$(date -Iseconds -d "-$past_time")\")) {
 		Vuln.name,
 		Vuln.updatedAt,
-		Vuln.evidence { Evidence.target }
+		Vuln.description,
+		Vuln.evidence { expand(_all_) }
+		Vuln.references
 	}
 }" | jq -r '.data.results | .[]'
