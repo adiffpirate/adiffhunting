@@ -20,7 +20,7 @@ alpha:
   extraFlags: "--security whitelist=0.0.0.0/0"
   resources:
     requests:
-      cpu: 500m
+      cpu: 250m
       memory: 2Gi
     limits:
       memory: 2Gi
