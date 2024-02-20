@@ -19,7 +19,7 @@ spec:
           image: adiffhunting/alert-vuln:6bb51ec
           env:
             - name: DEBUG
-              value: "false"
+              value: "true"
             - name: DGRAPH_ALPHA_HOST
               value: "dgraph-alpha.adh-db"
             - name: DGRAPH_ALPHA_HTTP_PORT
