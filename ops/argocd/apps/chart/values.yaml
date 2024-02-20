@@ -26,7 +26,7 @@ applications:
         targetRevision: 0.3.0
         helm:
           valueFiles:
-            - $adiffhunting/ops/live/db/dgraph/values.yaml
+            - $adiffhunting/ops/live/adh-db/dgraph/values.yaml
       - repoURL: *defaultRepoURL
         targetRevision: *defaultTargetRevision
         path: ops/live/adh-db
