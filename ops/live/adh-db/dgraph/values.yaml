@@ -1,12 +1,12 @@
 fullnameOverride: dgraph
 
 zero:
-  replicaCount: 1
+  replicaCount: 3
   persistence:
     size: 3Gi
 
 alpha:
-  replicaCount: 1
+  replicaCount: 3
   service:
     type: NodePort
   persistence:
