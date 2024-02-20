@@ -36,7 +36,7 @@ spec:
                   key: telegram-chat-id
           resources:
             requests:
-              cpu: 50m
-              memory: 54Mi
+              cpu: 25m
+              memory: 32Mi
             limits:
-              memory: 54Mi
+              memory: 32Mi
