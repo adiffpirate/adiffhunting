@@ -1,7 +1,7 @@
-FROM alpine:3.18.4
+FROM alpine:3.19.1
 
 # Basic tools
-RUN apk add --no-cache bash curl jq python3
+RUN apk add --no-cache bash coreutils curl wget jq unzip python3
 
 ENV UTILS=/src/_utils
 COPY _utils $UTILS

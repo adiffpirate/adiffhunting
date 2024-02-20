@@ -1,18 +1,10 @@
-FROM alpine:3.18.4
+FROM alpine:3.19.1
 
 # Basic tools
-RUN apk add --no-cache bash curl jq wget unzip python3
-
-# Amass
-ARG AMASS_VERSION="4.2.0"
-RUN wget https://github.com/OWASP/Amass/releases/download/v${AMASS_VERSION}/amass_Linux_i386.zip -O amass.zip \
-	&& unzip amass.zip \
-	&& mv amass_Linux_i386/amass /usr/bin/amass \
-	&& chmod +x /usr/bin/amass \
-	&& rm -rfv amass*
+RUN apk add --no-cache bash coreutils curl wget jq unzip python3
 
 # Subfinder
-ARG SUBFINDER_VERSION="2.6.3"
+ARG SUBFINDER_VERSION="2.6.5"
 RUN wget https://github.com/projectdiscovery/subfinder/releases/download/v${SUBFINDER_VERSION}/subfinder_${SUBFINDER_VERSION}_linux_386.zip -O subfinder.zip \
 	&& unzip subfinder.zip -d subfinder \
 	&& mv subfinder/subfinder /usr/bin/subfinder \
@@ -29,6 +21,8 @@ RUN wget https://github.com/projectdiscovery/chaos-client/releases/download/v${C
 
 ENV UTILS=/src/_utils
 COPY _utils $UTILS
+
+ENV ROOTDOMAIN_SCAN_COOLDOWN="1 hour"
 
 COPY recon/subenum-passive/* /src/
 CMD /src/entrypoint.sh

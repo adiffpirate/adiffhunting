@@ -2,14 +2,25 @@
 set -eEo pipefail
 trap '>&2 $UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
-get_oldest_enum_domain(){
-	filter=$1
+get_domain(){
+	filter='anyofterms(Domain.type, "root sub")'
 
-	# Get a domain without the "lastPassiveEnumeration" field ordered by level so that higher level domains are scanned first
-	domain=$($UTILS/get_domains.sh -f "not has(Domain.lastPassiveEnumeration) and $filter" -a 'orderasc: Domain.level, first: 1')
-	# If all domains have "lastPassiveEnumeration", get the oldest
+	# PRIO 1: Get a rootdomain without the "lastPassiveEnumeration" field
+	domain=$($UTILS/get_domains.sh -f 'eq(Domain.type, "root") not has(Domain.lastPassiveEnumeration)' -a 'first: 1')
+
+	# PRIO 2: Get a rootdomain whose "lastPassiveEnumeration" is older than $ROOTDOMAIN_SCAN_COOLDOWN
 	if [ -z "$domain" ]; then
-		domain=$($UTILS/get_domains.sh -f "$filter" -a 'orderasc: Domain.lastPassiveEnumeration, first: 1')
+		domain=$($UTILS/get_domains.sh -f "eq(Domain.type, \"root\") and lt(Domain.lastPassiveEnumeration, \"$(date -Iseconds -d "-$ROOTDOMAIN_SCAN_COOLDOWN")\")" -a 'first: 1')
+	fi
+
+	# PRIO 3: Get a subdomain without the "lastPassiveEnumeration" field ordered by level so that higher levels are scanned first
+	if [ -z "$domain" ]; then
+		domain=$($UTILS/get_domains.sh -f 'eq(Domain.type, "sub") not has(Domain.lastPassiveEnumeration)' -a 'orderasc: Domain.level, first: 1')
+	fi
+
+	# PRIO 4: Get a subdomain with the oldest "lastPassiveEnumeration"
+	if [ -z "$domain" ]; then
+		domain=$($UTILS/get_domains.sh -f 'eq(Domain.type, "sub")' -a 'orderasc: Domain.lastPassiveEnumeration, first: 1')
 	fi
 
 	if [ -z "$domain" ]; then
@@ -38,9 +49,7 @@ run(){
 	tool=$1
 	domain=$2
 
-	if [[ "$tool" == "amass-passive" ]]; then
-		timeout 600 amass enum -silent -passive -nocolor -d $domain
-	elif [[ "$tool" == "subfinder" ]]; then
+	if [[ "$tool" == "subfinder" ]]; then
 		subfinder -silent -d $domain
 	elif [[ "$tool" == "chaos" ]] && [ -n "$CHAOS_KEY" ]; then
 		# Chaos doesn't accept domains which levels are greater than 2, so we strip the domain and filter the results
@@ -53,7 +62,7 @@ run_and_save(){
 	domain=$2
 
 	if [ -z "$domain" ]; then
-		>&2 echo "WARNING: Skipping since no domain was provided"
+		echo 'Skipping since no domain was provided'
 		return
 	fi
 
@@ -68,33 +77,12 @@ while true; do
 
 	$UTILS/wait_for_db.sh
 
-	#----------------------------------------------------------------#
-	# STEP 1: Run for the oldest "lastPassiveEnumeration" rootdomain #
-	#----------------------------------------------------------------#
+	domain=$(get_domain)
 
-	rootdomain=$(get_oldest_enum_domain 'eq(Domain.type, "root")')
+	echo "[$domain] Running: Subfinder"
+	run_and_save subfinder $domain
 
-	echo "[$rootdomain] Running: Amass"
-	run_and_save amass-passive $rootdomain
-
-	echo "[$rootdomain] Running: Subfinder"
-	run_and_save subfinder $rootdomain
-
-	echo "[$rootdomain] Running: Chaos"
-	run_and_save chaos $rootdomain
-
-	#-----------------------------------------------------------------------------------#
-	# STEP 2: Run for the 100 oldest "lastPassiveEnumeration" rootdomains or subdomains #
-	#-----------------------------------------------------------------------------------#
-
-	for i in {1..100}; do
-		subdomain=$(get_oldest_enum_domain 'anyofterms(Domain.type, "root sub")')
-
-		echo "[$subdomain] Running: Subfinder"
-		run_and_save subfinder $subdomain
-
-		echo "[$subdomain] Running: Chaos"
-		run_and_save chaos $subdomain
-	done
+	echo "[$domain] Running: Chaos"
+	run_and_save chaos $domain
 
 done
