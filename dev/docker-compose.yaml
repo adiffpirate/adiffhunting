@@ -106,5 +106,15 @@ services:
       - DGRAPH_ALPHA_HTTP_PORT=8080
       - DOMAIN_SCAN_COOLDOWN=30 seconds
 
+  ssrf:
+    build:
+      dockerfile: exploit/ssrf/Dockerfile
+      context: . # dev dir (needed to copy _utils)
+    environment:
+      - DEBUG=$DEBUG
+      - DGRAPH_ALPHA_HOST=dgraph-alpha
+      - DGRAPH_ALPHA_HTTP_PORT=8080
+      - DOMAIN_SCAN_COOLDOWN=30 seconds
+
 volumes:
   db-data: {}
