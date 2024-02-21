@@ -1,17 +1,28 @@
 #!/bin/bash
 
-ERR_CODE=$1
-ERR_FILE=$2
-ERR_COMMAND=$3
-ERR_LINE=$4
+OP_ID=$1
+ERR_CODE=$2
+ERR_FILE=$3
+ERR_COMMAND=$4
+ERR_LINE=$5
 
-echo "========= ERROR ========="
-echo
-echo "CODE: ${ERR_CODE}"
-echo "FILE: ${ERR_FILE}"
-echo "COMMAND: ${ERR_COMMAND}"
-echo "LINE: ${ERR_LINE}"
-echo
-echo "========== END =========="
+jq --null-input --compact-output \
+	--arg OP_ID "$OP_ID" \
+	--arg ERR_CODE "$ERR_CODE" \
+	--arg ERR_FILE "$ERR_FILE" \
+	--arg ERR_COMMAND "$ERR_COMMAND" \
+	--arg ERR_LINE "$ERR_LINE" '
+	{
+		"level": "error",
+		"operation_id": $OP_ID,
+		"message": "There was an error processing the operation",
+		"body": {
+			"return_code": $ERR_CODE,
+			"file": $ERR_FILE,
+			"line": $ERR_LINE,
+			"command": $ERR_COMMAND
+		}
+	}
+'
 
 exit 1

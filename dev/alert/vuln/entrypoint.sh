@@ -1,9 +1,10 @@
 #!/bin/bash
 set -eEo pipefail
-trap '>&2 echo "ERROR: Command failed"; exit 1' ERR
+trap '>&2 $UTILS/_stacktrace.sh "$OP_ID" "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 while true; do
 
+	export OP_ID=$(uuidgen -r)
 	$UTILS/wait_for_db.sh
 
 	vuln=$($UTILS/query_dgraph.sh -t dql -q "{

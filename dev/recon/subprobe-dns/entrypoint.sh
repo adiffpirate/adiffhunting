@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eEo pipefail
-trap '>&2 $UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
+trap '>&2 $UTILS/_stacktrace.sh "$OP_ID" "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 resolve(){
 	domains=$1
@@ -64,6 +64,7 @@ domains=$(mktemp)
 
 while true; do
 
+	export OP_ID=$(uuidgen -r)
 	$UTILS/wait_for_db.sh
 
 	# Get 100 domains without the "lastProbe" field
