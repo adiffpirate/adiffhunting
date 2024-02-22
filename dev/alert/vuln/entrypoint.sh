@@ -18,9 +18,9 @@ while true; do
 	}" | yq -P '.data.results | .[]')
 
 	if [ -n "$vuln" ]; then
-		$UTILS/log.sh 'info' 'Vulnerability found! Sending alert' "vuln=$vuln"
+		$UTILS/_log.sh 'info' 'Vulnerability found! Sending alert' "vuln=$vuln"
 	else
-		$UTILS/log.sh 'info' "Nothing to alert. Trying again in $ALERT_COOLDOWN_SECONDS seconds"
+		$UTILS/_log.sh 'info' "Nothing to alert. Trying again in $ALERT_COOLDOWN_SECONDS seconds"
 		sleep $ALERT_COOLDOWN_SECONDS
 		continue
 	fi
@@ -35,7 +35,7 @@ while true; do
 		}]
 	}')
 
-	$UTILS/log.sh 'info' 'The alert has been sent successfully. Updating its notified status on database'
+	$UTILS/_log.sh 'info' 'The alert has been sent successfully. Updating its notified status on database'
 	$UTILS/query_dgraph.sh -q $query_file "
 		mutation {
 			addVuln(input: [{

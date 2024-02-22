@@ -6,7 +6,7 @@ export OP_ID=$(uuidgen -r)
 $UTILS/wait_for_db.sh
 
 # Create schemas
-$UTILS/log.sh 'info' "Creating Schemas"
+$UTILS/_log.sh 'info' "Creating Schemas"
 curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 	type Company {
 		id: ID!
@@ -83,6 +83,6 @@ python3 $UTILS/parse_companies.py -f /src/data/companies.json -o /tmp/domains
 
 for company_domains_file in /tmp/domains/*; do
 	company=$(echo "$company_domains_file" | awk -F/ '{print $NF}' | awk -F. '{print $1}')
-	$UTILS/log.sh 'info' 'Creating company' "company=$company"
+	$UTILS/_log.sh 'info' 'Creating company' "company=$company"
 	$UTILS/save_company.sh -c "$company" -f "$company_domains_file" | jq -c .
 done
