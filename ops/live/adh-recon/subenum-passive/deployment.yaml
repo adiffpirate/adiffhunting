@@ -19,7 +19,7 @@ spec:
           image: adiffhunting/recon-subenum-passive:bcb6a3e
           env:
             - name: DEBUG
-              value: "true"
+              value: "false"
             - name: DGRAPH_ALPHA_HOST
               value: "dgraph-alpha.adh-db"
             - name: DGRAPH_ALPHA_HTTP_PORT
