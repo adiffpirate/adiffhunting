@@ -1,7 +1,7 @@
 Get domains with level greater than 5 that has a CNAME record
 ```
 ./query_dgraph.sh -t dql -q '{
-  record as f(func: eq(DnsRecord.type, "CNAME")) {
+  record as f(func: eq(DnsRecord.type, "CNAME")) @filter(has(DnsRecord.values)) {
     domain as DnsRecord.domain
   }
 	results(func: uid(domain)) @filter(gt(Domain.level, 5)) {
