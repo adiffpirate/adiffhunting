@@ -3,7 +3,7 @@
 script_path=$(dirname "$0")
 
 set -eEo pipefail
-trap '>&2 $script_path/_stacktrace.sh "$OP_ID" "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
+trap '>&2 $script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 usage="$(basename "$0") [-h|f]
 
@@ -62,9 +62,5 @@ echo "
 		}
 	}
 " > $query_file
-
-if [[ "$DEBUG" == "true" ]]; then
-	>&2 echo "[save_dnsrecord.sh] cat $query_file"
-fi
 
 $script_path/query_dgraph.sh -f $query_file

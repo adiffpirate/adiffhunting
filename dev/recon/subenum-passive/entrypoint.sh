@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eEo pipefail
-trap '>&2 $UTILS/_stacktrace.sh "$OP_ID" "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
+trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 get_domain(){
 	filter='anyofterms(Domain.type, "root sub")'
@@ -24,13 +24,13 @@ get_domain(){
 	fi
 
 	if [ -z "$domain" ]; then
-		>&2 echo "No domains to enumerate. Trying again in 10 seconds"
+		$UTILS/_log.sh 'info' 'No domains to enumerate. Trying again in 10 seconds'
 		sleep 10
 		return
 	fi
 
-	>&2 echo "[$domain] Updating lastPassiveEnumeration field"
-	>&2 $UTILS/query_dgraph.sh -q "
+	$UTILS/_log.sh 'info' 'Updating lastPassiveEnumeration field' "domain=$domain"
+	$UTILS/query_dgraph.sh -q "
 		mutation {
 			updateDomain(input: {
 				filter: { name: { eq: \"$domain\" } },
@@ -39,7 +39,7 @@ get_domain(){
 				domain { name }
 			}
 		}
-	"
+	" > /dev/null
 
 	echo $domain
 }
@@ -62,7 +62,7 @@ run_and_save(){
 	domain=$2
 
 	if [ -z "$domain" ]; then
-		echo 'Skipping since no domain was provided'
+		$UTILS/_log.sh 'info' 'Skipping since no domain was provided'
 		return
 	fi
 
@@ -80,10 +80,10 @@ while true; do
 
 	domain=$(get_domain)
 
-	echo "[$domain] Running: Subfinder"
+	$UTILS/_log.sh 'info' 'Running: Subfinder'
 	run_and_save subfinder $domain
 
-	echo "[$domain] Running: Chaos"
+	$UTILS/_log.sh 'info' 'Running: Chaos'
 	run_and_save chaos $domain
 
 done

@@ -3,7 +3,7 @@
 script_path=$(dirname "$0")
 
 set -eEo pipefail
-trap '>&2 $script_path/_stacktrace.sh "$OP_ID" "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
+trap '>&2 $script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 usage="$(basename "$0") [-h|c|f]
 
@@ -43,10 +43,6 @@ query="
 		}
 	}
 "
-
-if [[ "$DEBUG" == "true" ]]; then
-	>&2 echo "[save_company.sh] $query"
-fi
 
 $script_path/query_dgraph.sh -q "$query"
 $script_path/save_domains.sh -f "$company_domains_csv_file"

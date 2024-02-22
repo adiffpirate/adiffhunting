@@ -3,7 +3,7 @@
 script_path=$(dirname "$0")
 
 set -eEo pipefail
-trap '>&2 $script_path/_stacktrace.sh "$OP_ID" "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
+trap '>&2 $script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 usage="$(basename "$0") [-h|q|f|t]
 
@@ -53,9 +53,7 @@ fi
 #   3. Remove quotes from keys
 query=$(echo "$initial_query" | sed 's/\\n//g' | sed 's/\\t//g' | sed 's/\\r//g' | while read line; do echo -n "$line"; done | sed -E 's/"([^"]*)":/\1:/g')
 
-if [[ "$DEBUG" == "true" ]]; then
-	>&2 echo "[query_dgraph.sh] $query"
-fi
+$script_path/_log.sh 'debug' 'Querying database' "query=$query"
 
 # Prepare request
 if [[ "$query_type" == "graphql" ]] ; then

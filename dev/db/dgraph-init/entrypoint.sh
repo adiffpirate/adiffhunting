@@ -1,12 +1,12 @@
 #!/bin/bash
 set -eEo pipefail
-trap '>&2 $UTILS/_stacktrace.sh "$OP_ID" "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
+trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 export OP_ID=$(uuidgen -r)
 $UTILS/wait_for_db.sh
 
 # Create schemas
-echo "Creating Schemas"
+$UTILS/log.sh 'info' "Creating Schemas"
 curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 	type Company {
 		id: ID!
@@ -83,6 +83,6 @@ python3 $UTILS/parse_companies.py -f /src/data/companies.json -o /tmp/domains
 
 for company_domains_file in /tmp/domains/*; do
 	company=$(echo "$company_domains_file" | awk -F/ '{print $NF}' | awk -F. '{print $1}')
-	echo "[$company] Creating company"
+	$UTILS/log.sh 'info' 'Creating company' "company=$company"
 	$UTILS/save_company.sh -c "$company" -f "$company_domains_file" | jq -c .
 done

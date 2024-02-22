@@ -1,28 +1,19 @@
 #!/bin/bash
 
-OP_ID=$1
-ERR_CODE=$2
-ERR_FILE=$3
-ERR_COMMAND=$4
-ERR_LINE=$5
+script_path=$(dirname "$0")
 
-jq --null-input --compact-output \
-	--arg OP_ID "$OP_ID" \
-	--arg ERR_CODE "$ERR_CODE" \
-	--arg ERR_FILE "$ERR_FILE" \
-	--arg ERR_COMMAND "$ERR_COMMAND" \
-	--arg ERR_LINE "$ERR_LINE" '
-	{
-		"level": "error",
-		"operation_id": $OP_ID,
-		"message": "There was an error processing the operation",
-		"body": {
-			"return_code": $ERR_CODE,
-			"file": $ERR_FILE,
-			"line": $ERR_LINE,
-			"command": $ERR_COMMAND
-		}
-	}
-'
+ERR_CODE=$1
+ERR_FILE=$2
+ERR_COMMAND=$3
+ERR_LINE=$4
 
+$script_path/_log.sh \
+	'error' \
+	'There was an error processing the operation' \
+	"return_code=$ERR_CODE" \
+	"file=$ERR_FILE" \
+	"line=$ERR_FILE" \
+	"command=$ERR_COMMAND" \
+|| >&2 echo "{\"level\":\"error\",\"operation_id\":\"$OP_ID\",\"message\":\"Unable to create stacktrace\",\"body\":{\"file\":\"$BASH_SOURCE\",\"line\":\"$LINENO\",\"command\":\"$(echo $BASH_COMMAND | sed "s/\"/\\\\\"/g")\"}}"
+			
 exit 1

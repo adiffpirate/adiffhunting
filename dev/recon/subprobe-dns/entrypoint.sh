@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eEo pipefail
-trap '>&2 $UTILS/_stacktrace.sh "$OP_ID" "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
+trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 resolve(){
 	domains=$1
@@ -10,7 +10,7 @@ resolve(){
 	# Get updated list of resolvers once a day
 	resolvers_file=/tmp/resolvers.txt
 	if [ $(($(date +%s)-$(date +%s -r $resolvers_file || echo 86401))) -gt 86400 ]; then
-		>&2 echo "Downloading resolvers file"
+		$UTILS/_log.sh 'info' 'Downloading resolvers file'
 		curl --no-progress-meter --fail https://raw.githubusercontent.com/trickest/resolvers/main/resolvers.txt > $resolvers_file
 	fi
 
@@ -21,7 +21,7 @@ resolve(){
 	# Run DNSX and parse its output as JSON Lines according to database schema
 	dnsx -list $domains -resolver $resolvers_file -silent -omit-raw -threads 10 -json -$record_type \
 	| while read line; do
-		if [[ "$DEBUG" == "true" ]]; then >&2 echo "Processing record: $line"; fi
+		$UTILS/_log.sh 'debug' 'Parsing DNS record' "record=$line"
 		# Run sed pattern twice to handle overlapping matches.
 		# Also run another sed to handle wronfully escaped "@" chars
 		echo "$line" | sed -E "$sed_pattern" | sed -E "$sed_pattern" | sed 's/\\@/@/g' | jq -c "{
@@ -30,7 +30,7 @@ resolve(){
 			type: \"$record_type_uppercase\",
 			values: ( .\"$record_type\" // [] ),
 			updatedAt: .timestamp
-		}" || >&2 echo "Error while processing record: $line"
+		}" || $UTILS/_log.sh 'error' 'Error while parsing DNS record' "record=$line"
 	done > $output_json_lines
 
 	# Print JSON Lines as JSON Array
@@ -56,7 +56,7 @@ resolve_and_save(){
 		" > $query_file
 		>&2 $UTILS/query_dgraph.sh -f $query_file
 	else
-		>&2 echo "Nothing found"
+		$UTILS/_log.sh 'info' "Nothing was found"
 	fi
 }
 
@@ -74,21 +74,16 @@ while true; do
 		$UTILS/get_domains.sh -a 'orderasc: Domain.lastProbe, first: 100' > $domains
 	fi
 
-	if [[ "$DEBUG" == "true" ]]; then
-		echo "Will probe the following domains:"
-		cat $domains
-	fi
-
 	if [ ! -s "$domains" ]; then
-		echo "No domains to probe. Trying again in 10 seconds"
+		$UTILS/_log.sh 'info' "No domains to probe. Trying again in 10 seconds"
 		sleep 10
 		continue
 	fi
 
-	echo "Updating lastProbe field"
-	$UTILS/save_domains.sh -f <(cat $domains | sed '1i name,lastProbe' | sed "s/$/,$(date -Iseconds)/") | jq -c .
+	$UTILS/_log.sh 'info' 'Updating lastProbe field' "domains=$(cat $domains)"
+	$UTILS/save_domains.sh -f <(cat $domains | sed '1i name,lastProbe' | sed "s/$/,$(date -Iseconds)/") > /dev/null
 
-	echo "Starting: DNSX"
+	$UTILS/_log.sh 'info' 'Running: DNSX'
 	for record_type in 'a' 'aaaa' 'cname' 'ns' 'txt' 'srv' 'ptr' 'mx' 'soa' 'caa'; do
 		echo "Running: DNSX for $(echo $record_type | tr '[:lower:]' '[:upper:]') record type"
 		resolve_and_save $domains $record_type
