@@ -53,7 +53,7 @@ fi
 #   3. Remove quotes from keys
 query=$(echo "$initial_query" | sed 's/\\n//g' | sed 's/\\t//g' | sed 's/\\r//g' | while read line; do echo -n "$line"; done | sed -E 's/"([^"]*)":/\1:/g')
 
-$script_path/_log.sh 'debug' 'Querying database' "query=$query"
+$script_path/_log.sh 'debug' 'Querying database' #"query=$query"
 
 # Prepare request
 if [[ "$query_type" == "graphql" ]] ; then
