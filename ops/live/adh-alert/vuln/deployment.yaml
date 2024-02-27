@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: adh-alert-vuln
-          image: adiffhunting/alert-vuln:6dbc42b
+          image: adiffhunting/alert-vuln:684d304
           env:
             - name: DEBUG
               value: "true"
