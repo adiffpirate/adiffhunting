@@ -77,7 +77,11 @@ fi
 
 # Send request
 body_file=$(mktemp) && echo "$body" > $body_file
-curl --no-progress-meter --fail $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
+until curl --no-progress-meter --fail \
+	$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
 	--header "Content-Type: $content_type" \
 	--data "@$body_file" \
-| jq -c .
+; do
+		$script_path/_log.sh 'error' 'Error while querying database. Retrying in 5 seconds'
+		sleep 5
+done | jq -c .
