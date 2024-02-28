@@ -30,7 +30,7 @@ fi
 input="
 	{
 		name: \"$company\",
-		domains: $(python3 $script_path/parse_domains.py -f $company_domains_csv_file | jq -c '[.[] | select(.level == 2) | {name: .name}]')
+		domains: $(python3 $script_path/parse_domains.py -f $company_domains_csv_file | jq -c '[select(.type == "root") | {name: .name}]')
 	}
 "
 
