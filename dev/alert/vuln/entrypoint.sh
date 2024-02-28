@@ -3,9 +3,7 @@ set -eEo pipefail
 trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
 while true; do
-
-	export OP_ID=$(uuidgen -r)
-	$UTILS/wait_for_db.sh
+	$UTILS/op_start.sh
 
 	vuln=$($UTILS/query_dgraph.sh -t dql -q "{
 		results(func: has(Vuln.name)) @filter(not eq(Vuln.notified, true)) {
@@ -47,4 +45,5 @@ while true; do
 		}
 	" > /dev/null
 
+	$UTILS/op_end.sh
 done
