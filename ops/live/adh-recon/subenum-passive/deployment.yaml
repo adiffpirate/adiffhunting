@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: adh-recon-subenum-passive
-          image: adiffhunting/recon-subenum-passive:684d304
+          image: adiffhunting/recon-subenum-passive:2ec8b6f
           env:
             - name: DEBUG
               value: "true"
