@@ -41,7 +41,7 @@ resolve_and_save(){
 	resolve $domains $record_type | while read line; do
 		$UTILS/query_dgraph.sh -q "
 			mutation {
-				addDnsRecord(input: $(cat $output), upsert: true){
+				addDnsRecord(input: [$line], upsert: true){
 					dnsRecord { name, values }
 				}
 			}
