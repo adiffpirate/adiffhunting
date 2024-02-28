@@ -54,8 +54,8 @@ domains=$(mktemp)
 while true; do
 	$UTILS/op_start.sh
 
-	# Get 100 domains without the "lastProbe" field
-	$UTILS/get_domains.sh -f 'not has(Domain.lastProbe)' -a 'first: 100' > $domains
+	# Get 100 domains without the "lastProbe" field ordered by level so that higher levels are scanned first
+	$UTILS/get_domains.sh -f 'not has(Domain.lastProbe)' -a 'orderasc: Domain.level, first: 100' > $domains
 	# If all domains have "lastProbe", get the 100 oldest
 	if [ ! -s "$domains" ]; then
 		$UTILS/get_domains.sh -a 'orderasc: Domain.lastProbe, first: 100' > $domains
