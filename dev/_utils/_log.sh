@@ -4,6 +4,11 @@ format_to_json_string(){
   printf '%s' "$1" | jq -s -R | sed 's/^"//' | sed 's/"$//'
 }
 
+# Keep backwards compability with old way of setting OP_ID
+if [ -s /tmp/adh-operation-id ]; then
+	export OP_ID=$(cat /tmp/adh-operation-id)
+fi
+
 LEVEL=$1
 MESSAGE=$(format_to_json_string "$2")
 
