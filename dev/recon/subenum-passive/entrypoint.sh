@@ -23,9 +23,8 @@ get_domain(){
 		domain=$($UTILS/get_domains.sh -f 'eq(Domain.type, "sub")' -a 'orderasc: Domain.lastPassiveEnumeration, first: 1')
 	fi
 
+	# Return if no domain was found
 	if [ -z "$domain" ]; then
-		$UTILS/_log.sh 'info' 'No domains to enumerate. Trying again in 10 seconds'
-		sleep 10
 		return
 	fi
 
@@ -61,11 +60,6 @@ run_and_save(){
 	tool=$1
 	domain=$2
 
-	if [ -z "$domain" ]; then
-		$UTILS/_log.sh 'info' 'Skipping since no domain was provided'
-		return
-	fi
-
 	subdomains_csv_file=/tmp/subdomains_$tool.csv
 
 	echo 'name' > $subdomains_csv_file
@@ -74,11 +68,14 @@ run_and_save(){
 }
 
 while true; do
-
-	export OP_ID=$(uuidgen -r)
-	$UTILS/wait_for_db.sh
+	$UTILS/op_start.sh
 
 	domain=$(get_domain)
+	if [ -z "$domain" ]; then
+		$UTILS/_log.sh 'info' 'No domains to enumerate. Trying again in 10 seconds'
+		sleep 10
+		continue
+	fi
 
 	$UTILS/_log.sh 'info' 'Running: Subfinder'
 	run_and_save subfinder $domain
@@ -86,4 +83,5 @@ while true; do
 	$UTILS/_log.sh 'info' 'Running: Chaos'
 	run_and_save chaos $domain
 
+	$UTILS/op_end.sh
 done
