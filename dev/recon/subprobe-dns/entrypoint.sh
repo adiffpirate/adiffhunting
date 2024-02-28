@@ -17,8 +17,7 @@ resolve(){
 	# Sed pattern to escape quotes inside values
 	sed_pattern='s/([-_=+~;.!@#$%&*^" a-zA-Z0-9])"([-_=+~;.!@#$%&*^" a-zA-Z0-9])/\1\\"\2/g'
 
-	output_json_lines=$(mktemp)
-	# Run DNSX and parse its output as JSON Lines according to database schema
+	# Run DNSX and print its output as JSON Lines according to database schema
 	dnsx -list $domains -resolver $resolvers_file -silent -omit-raw -threads 10 -json -$record_type \
 	| while read line; do
 		$UTILS/_log.sh 'debug' 'Parsing DNS record' "record=$line"
@@ -31,41 +30,29 @@ resolve(){
 			values: ( .\"$record_type\" // [] ),
 			updatedAt: .timestamp
 		}" || $UTILS/_log.sh 'error' 'Error while parsing DNS record' "record=$line"
-	done > $output_json_lines
-
-	# Print JSON Lines as JSON Array
-	cat $output_json_lines | jq -s
+	done
 }
 
 resolve_and_save(){
 	domains=$1
 	record_type=$2
 
-	output=$(mktemp)
-	resolve $domains $record_type > $output
-
-	# Save records on database
-	if [ -s "$output" ]; then
-		query_file=$(mktemp)
-		echo "
+	# Resolve and save records on database, one at a time
+	resolve $domains $record_type | while read line; do
+		$UTILS/query_dgraph.sh -q "
 			mutation {
 				addDnsRecord(input: $(cat $output), upsert: true){
 					dnsRecord { name, values }
 				}
 			}
-		" > $query_file
-		>&2 $UTILS/query_dgraph.sh -f $query_file
-	else
-		$UTILS/_log.sh 'info' "Nothing was found"
-	fi
+		"
+	done
 }
 
 domains=$(mktemp)
 
 while true; do
-
-	export OP_ID=$(uuidgen -r)
-	$UTILS/wait_for_db.sh
+	$UTILS/op_start.sh
 
 	# Get 100 domains without the "lastProbe" field
 	$UTILS/get_domains.sh -f 'not has(Domain.lastProbe)' -a 'first: 100' > $domains
@@ -81,12 +68,23 @@ while true; do
 	fi
 
 	$UTILS/_log.sh 'info' 'Updating lastProbe field' "domains=$(cat $domains)"
-	$UTILS/save_domains.sh -f <(cat $domains | sed '1i name,lastProbe' | sed "s/$/,$(date -Iseconds)/") > /dev/null
+	cat $domains | while read domain; do
+		$UTILS/query_dgraph.sh -q "
+			mutation {
+				updateDomain(input: {
+					filter: { name: { eq: \"$domain\" } },
+					set: { lastProbe: \"$(date -Iseconds)\"} }
+				){
+					domain { name }
+				}
+			}
+		" > /dev/null
+	done
 
-	$UTILS/_log.sh 'info' 'Running: DNSX'
 	for record_type in 'a' 'aaaa' 'cname' 'ns' 'txt' 'srv' 'ptr' 'mx' 'soa' 'caa'; do
-		echo "Running: DNSX for $(echo $record_type | tr '[:lower:]' '[:upper:]') record type"
+		$UTILS/_log.sh 'info' 'Running: DNSX' "record_type=$(echo $record_type | tr '[:lower:]' '[:upper:]')"
 		resolve_and_save $domains $record_type
 	done
 
+	$UTILS/op_end.sh
 done
