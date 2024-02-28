@@ -5,7 +5,7 @@ metadata:
     app: adh-recon-subprobe-dns
   name: adh-recon-subprobe-dns
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: adh-recon-subprobe-dns
