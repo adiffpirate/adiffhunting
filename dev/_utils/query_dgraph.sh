@@ -53,8 +53,6 @@ fi
 #   3. Remove quotes from keys
 query=$(echo "$initial_query" | sed 's/\\n//g' | sed 's/\\t//g' | sed 's/\\r//g' | while read line; do echo -n "$line"; done | sed -E 's/"([^"]*)":/\1:/g')
 
-$script_path/_log.sh 'debug' 'Querying database' #"query=$query"
-
 # Prepare request
 if [[ "$query_type" == "graphql" ]] ; then
 	body="{\"query\":\"$(echo $query | sed 's/"/\\"/g')\"}"
@@ -75,8 +73,14 @@ else
 	exit 1
 fi
 
-# Send request
+# Save body to file
 body_file=$(mktemp) && echo "$body" > $body_file
+
+$script_path/_log.sh 'debug' 'Querying database' #"body=$body"
+
+# Get start time
+start_time=$(date +%s%3N)
+
 until curl --no-progress-meter --fail \
 	$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
 	--header "Content-Type: $content_type" \
@@ -85,3 +89,10 @@ until curl --no-progress-meter --fail \
 		$script_path/_log.sh 'error' 'Error while querying database. Retrying in 5 seconds'
 		sleep 5
 done | jq -c .
+
+# Get end time
+end_time=$(date +%s%3N)
+# Calculate timespan
+timespan=$((end_time - start_time))
+
+$script_path/_log.sh 'debug' 'Database query successful' "timespan_ms=$timespan"
