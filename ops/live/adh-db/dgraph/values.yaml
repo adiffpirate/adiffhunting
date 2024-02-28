@@ -17,7 +17,7 @@ alpha:
     type: NodePort
   persistence:
     size: 10Gi
-  extraFlags: --security whitelist=0.0.0.0/0 --badger numgoroutines=8
+  extraFlags: --security whitelist=0.0.0.0/0 --badger numgoroutines=4
   resources:
     requests:
       cpu: 500m
