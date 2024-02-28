@@ -76,7 +76,7 @@ fi
 # Save body to file
 body_file=$(mktemp) && echo "$body" > $body_file
 
-$script_path/_log.sh 'debug' 'Querying database' #"body=$body"
+$script_path/_log.sh 'debug' 'Querying database' "query=$body"
 
 # Get start time
 start_time=$(date +%s%3N)

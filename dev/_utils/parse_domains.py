@@ -51,8 +51,7 @@ def main():
     for lower_level_domains in domains_by_level_dict.values():
         all_domains.update(lower_level_domains)
 
-    # Construct JSON in a format that reflects the Domain schema in the database
-    parsed_domains = list()
+    # Print JSONLines in a format that reflects the Domain schema in the database
     for domain in all_domains:
         tmp = dict()
 
@@ -98,15 +97,13 @@ def main():
         if args.tool and tmp['type'] == 'sub':
             tmp['foundBy'] = [{"name": args.tool.split(':')[0], "type": args.tool.split(':')[1]}]
 
-        # Get subdomains
+        # Print JSON
+        print(json.dumps(tmp))
+
+        # If has subdomains, print each one as a different JSON
         lower_level_domains = domains_by_level_dict.get(domain, set())
-        tmp['subdomains'] = [{"name": sub} for sub in lower_level_domains]
-
-        # Add object to the list of parsed domains
-        parsed_domains.append(tmp)
-
-    # Print JSON sorted by level
-    print(json.dumps(sorted(parsed_domains, key=lambda field: field['level'])))
+        for sub in lower_level_domains:
+            print(json.dumps({"name": domain, "subdomains": [{"name": sub}]}))
 
 
 def get_domains_by_level(domain, domains_by_level_dict):

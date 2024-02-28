@@ -30,25 +30,19 @@ fi
 
 domains_json_file=$(mktemp)
 
-# Write JSON from domains file
-python3 $script_path/parse_domains.py -f "$domains_csv_file" -t "$tool" | jq -c . > $domains_json_file
+# Write JSONLines from domains file
+python3 $script_path/parse_domains.py -f "$domains_csv_file" -t "$tool" > $domains_json_file
 
-# For each level
-jq '.[] | .level' $domains_json_file | sort -n -u | while read level; do
-	# Get domains which level equals $level
-	input=$(jq -c "[.[] | select(.level == $level)]" $domains_json_file)
-	# Write query to file using input above
-	query_file=/tmp/query_$(date -Iseconds).graphql
-	echo "
+# For each line
+cat $domains_json_file | while read line; do
+	# Send query to database
+	$script_path/query_dgraph.sh -q "
 		mutation {
-			addDomain(input: $input, upsert: true){
+			addDomain(input: [$line], upsert: true){
 				domain {
 					name
 				}
 			}
 		}
-	" > $query_file
-
-	# Send query to database
-	$script_path/query_dgraph.sh -f "$query_file"
+	"
 done
