@@ -10,8 +10,17 @@ loki:
       admin: admin
   commonConfig:
     replication_factor: 1
+
+  # https://github.com/grafana/loki/issues/5123#issuecomment-1167018445
+  query_scheduler:
+    max_outstanding_requests_per_tenant: 4096
+  frontend:
+    max_outstanding_per_tenant: 4096
+  query_range:
+    parallelise_shardable_queries: true
   limits_config:
-    split_queries_by_interval: 1d
+    split_queries_by_interval: 15m
+    max_query_parallelism: 32
 
 backend:
   replicas: 1
