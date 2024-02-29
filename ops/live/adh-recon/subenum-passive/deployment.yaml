@@ -5,7 +5,7 @@ metadata:
     app: adh-recon-subenum-passive
   name: adh-recon-subenum-passive
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: adh-recon-subenum-passive
