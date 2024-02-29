@@ -12,8 +12,6 @@ loki:
     replication_factor: 1
 
   # https://github.com/grafana/loki/issues/5123#issuecomment-1167018445
-  query_scheduler:
-    max_outstanding_requests_per_tenant: 4096
   frontend:
     max_outstanding_per_tenant: 4096
   query_range:
