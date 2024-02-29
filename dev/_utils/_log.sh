@@ -1,12 +1,22 @@
 #!/bin/bash
 
-format_to_json_string(){
-  printf '%s' "$1" | jq -s -R | sed 's/^"//' | sed 's/"$//'
+format_to_json(){
+	input=$1
+
+	# If input is a valid JSON object
+	input_json=$(printf '%s' "$input" | sed -z 's/\\n//g' | jq -c 2>/dev/null || printf 'null')
+	if jq 'keys' <<< "$input_json" > /dev/null 2>&1; then
+		# Return the JSON object
+		printf '%s' "$input_json"
+	else
+		# Use jq to return input as JSON string
+		printf '%s' "$input" | jq -s -R
+	fi
 }
 
 LEVEL=$1
 OP_ID=$(cat /tmp/adh-operation-id)
-MESSAGE=$(format_to_json_string "$2")
+MESSAGE=$(format_to_json "$2" | sed 's/^"//' | sed 's/"$//')
 
 # Skip if is an debug message but debug is not enabled
 if [[ "$LEVEL" == "debug" ]] && [[ "$DEBUG" == "false" ]]; then
@@ -16,14 +26,14 @@ fi
 # Create json body from arguments
 BODY='{' # Open json
 for arg in "${@:3}"; do
-	# Use jq create a valid JSON string and sed to remove quotes created by jq
-  formatted_arg=$(format_to_json_string "$arg")
+	# Convert multiline string into one line
+	arg=$(printf '%s' "$arg" | sed -z 's/\n/\\n/g')
 	# Get key
-	key=$(echo "$formatted_arg" | awk -F= '{print $1}')
+	key=$(printf '%s' "$arg" | awk -F= '{print $1}')
 	# Get value
-	value=$(echo "$formatted_arg" | awk -F= '{print $2}')
+	value=$(printf '%s' "$arg" | awk -F= '{print $2}')
 	# Add to json
-	BODY+="\"$key\":\"$value\","
+	BODY+="\"$key\":$(format_to_json "$value"),"
 done
 BODY="${BODY%,*}}" # Remove the trailing comma and close json
 
