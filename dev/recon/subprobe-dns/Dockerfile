@@ -1,7 +1,7 @@
 FROM alpine:3.19.1
 
 # Basic tools
-RUN apk add --no-cache bash coreutils curl wget jq unzip python3 uuidgen
+RUN apk add --no-cache bash coreutils curl wget sed jq unzip python3 uuidgen
 
 # DNSX
 ARG DNSX_VERSION="1.1.5"
