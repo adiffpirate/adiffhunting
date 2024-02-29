@@ -13,11 +13,11 @@ loki:
 
   # https://github.com/grafana/loki/issues/5123#issuecomment-1167018445
   frontend:
-    max_outstanding_per_tenant: 4096
+    max_outstanding_per_tenant: 10000
   query_range:
     parallelise_shardable_queries: true
   limits_config:
-    split_queries_by_interval: 15m
+    split_queries_by_interval: 1h
     max_query_parallelism: 32
 
 backend:
@@ -30,15 +30,15 @@ backend:
       memory: 512Mi
     limits:
       memory: 512Mi
-  # affinity: |
-  #   podAntiAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 100
-  #         podAffinityTerm:
-  #           labelSelector:
-  #             matchLabels:
-  #               {{- include "loki.backendSelectorLabels" . | nindent 12 }}
-  #           topologyKey: topology.kubernetes.io/zone
+  affinity: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                {{- include "loki.backendSelectorLabels" . | nindent 12 }}
+            topologyKey: kubernetes.io/hostname
 
 write:
   replicas: 1
@@ -50,15 +50,15 @@ write:
       memory: 512Mi
     limits:
       memory: 512Mi
-  # affinity: |
-  #   podAntiAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 100
-  #         podAffinityTerm:
-  #           labelSelector:
-  #             matchLabels:
-  #               {{- include "loki.writeSelectorLabels" . | nindent 12 }}
-  #           topologyKey: topology.kubernetes.io/zone
+  affinity: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                {{- include "loki.writeSelectorLabels" . | nindent 12 }}
+            topologyKey: kubernetes.io/hostname
 
 read:
   autoscaling:
@@ -72,15 +72,15 @@ read:
     requests:
       cpu: 100m
       memory: 512Mi
-  # affinity: |
-  #   podAntiAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 100
-  #         podAffinityTerm:
-  #           labelSelector:
-  #             matchLabels:
-  #               {{- include "loki.readSelectorLabels" . | nindent 12 }}
-  #           topologyKey: topology.kubernetes.io/zone
+  affinity: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                {{- include "loki.readSelectorLabels" . | nindent 12 }}
+            topologyKey: kubernetes.io/hostname
 
 monitoring:
   serviceMonitor:
