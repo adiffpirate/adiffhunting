@@ -39,3 +39,7 @@ BODY="${BODY%,*}}" # Remove the trailing comma and close json
 		body: $BODY
 	}
 ' || >&2 echo "{\"level\":\"error\",\"operation_id\":\"$OP_ID\",\"message\":\"Unable to create log message from provided arguments\"}"
+
+if [[ "$LEVEL" == "error" ]]; then
+	exit 1
+fi

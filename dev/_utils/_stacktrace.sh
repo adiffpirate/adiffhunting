@@ -13,7 +13,4 @@ $script_path/_log.sh \
 	"return_code=$ERR_CODE" \
 	"file=$ERR_FILE" \
 	"line=$ERR_LINE" \
-	"command=$ERR_COMMAND" \
-|| >&2 echo "{\"level\":\"error\",\"operation_id\":\"$OP_ID\",\"message\":\"Unable to create stacktrace\",\"body\":{\"file\":\"$BASH_SOURCE\",\"line\":\"$LINENO\",\"command\":\"$(echo $BASH_COMMAND | sed "s/\"/\\\\\"/g")\"}}"
-			
-exit 1
+	"command=$ERR_COMMAND"

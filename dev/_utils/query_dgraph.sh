@@ -81,18 +81,24 @@ $script_path/_log.sh 'debug' 'Querying database' "query=$body"
 # Get start time
 start_time=$(date +%s%3N)
 
+output=$(mktemp)
 until curl --no-progress-meter --fail \
 	$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
 	--header "Content-Type: $content_type" \
 	--data "@$body_file" \
 ; do
-		$script_path/_log.sh 'error' 'Error while querying database. Retrying in 5 seconds'
+		$script_path/_log.sh 'info' 'Unable to reach database. Retrying in 5 seconds'
 		sleep 5
-done | jq -c .
+done > $output
+
+# Parse output
+if [[ "$(jq 'has("errors")' $output)" == "true" ]]; then
+	$script_path/_log.sh 'error' 'Database query returned errors' "query_result=$(cat $output)"
+else
+	$script_path/_log.sh 'debug' 'Database query successful' "query_result=$(cat $output)"
+fi
 
 # Get end time
 end_time=$(date +%s%3N)
 # Calculate timespan
 timespan=$((end_time - start_time))
-
-$script_path/_log.sh 'debug' 'Database query successful' "timespan_ms=$timespan"
