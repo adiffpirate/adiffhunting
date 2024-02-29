@@ -66,11 +66,10 @@ read:
     minReplicas: 1
     maxReplicas: 10
   resources:
-    limits:
-      cpu: 100m
-      memory: 512Mi
     requests:
-      cpu: 100m
+      cpu: 200m
+      memory: 512Mi
+    limits:
       memory: 512Mi
   affinity: |
     podAntiAffinity:
@@ -93,11 +92,10 @@ monitoring:
     tolerations:
       - operator: Exists
     resources:
-      limits:
-        cpu: 100m
-        memory: 128Mi
       requests:
         cpu: 100m
+        memory: 128Mi
+      limits:
         memory: 128Mi
 
 minio:
