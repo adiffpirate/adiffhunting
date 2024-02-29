@@ -10,11 +10,10 @@ config:
       tenant_id: logs
 
 resources:
-  limits:
-    cpu: 125m
-    memory: 256Mi
   requests:
     cpu: 125m
+    memory: 256Mi
+  limits:
     memory: 256Mi
 
 serviceMonitor:
