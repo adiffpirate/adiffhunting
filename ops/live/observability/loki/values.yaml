@@ -17,7 +17,7 @@ loki:
   query_range:
     parallelise_shardable_queries: true
   limits_config:
-    split_queries_by_interval: 1h
+    split_queries_by_interval: 15m
     max_query_parallelism: 32
 
 backend:
