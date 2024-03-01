@@ -30,7 +30,8 @@ if [ -n "$1" ] && [ -z "$past_time" ]; then
 	exit 1
 fi
 
-$script_path/query_dgraph.sh -t dql -q "{
+query_result=$(mktemp)
+$script_path/query_dgraph.sh -o $query_result -t dql -q "{
 	results(func: gt(Vuln.updatedAt, \"$(date -Iseconds -d "-$past_time")\")) {
 		Vuln.name,
 		Vuln.updatedAt,
@@ -38,4 +39,6 @@ $script_path/query_dgraph.sh -t dql -q "{
 		Vuln.evidence { expand(_all_) }
 		Vuln.references
 	}
-}" | jq -r '.data.results | .[]'
+}"
+
+jq -r '.data.results | .[]' $query_result

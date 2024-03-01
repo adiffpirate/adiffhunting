@@ -36,7 +36,7 @@ if [ -n "$domain" ]; then
 	fi
 fi
 
-$script_path/query_dgraph.sh -t dql -q "
+$script_path/query_dgraph.sh -o $query_result -t dql -q "
 	{
 		results(func: anyofterms(Domain.type, \"root sub\") $(if [ -n "$args" ]; then echo ",$args"; fi))
 		@filter(not eq(Domain.skipScans, true) $(if [ -n "$filter" ]; then echo "and $filter"; fi))
@@ -44,7 +44,7 @@ $script_path/query_dgraph.sh -t dql -q "
 			Domain.name
 		}
 	}
-" > $query_result
+"
 
 # Try to get domains. If it fails, print the query output to stderr
 jq -c -r '.data.results | .[] | ."Domain.name"' $query_result 2>/dev/null || >&2 jq -c '.' $query_result

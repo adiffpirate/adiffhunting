@@ -36,7 +36,7 @@ fi
 
 query_result=$(mktemp)
 
-$script_path/query_dgraph.sh -t dql -q "
+$script_path/query_dgraph.sh -o $query_result -t dql -q "
 	{
 		record as f(func: has(DnsRecord.values))
 		$(if [ -n "$record_types" ]; then echo "@filter(anyofterms(DnsRecord.type, \"$record_types\"))"; fi)
@@ -53,7 +53,7 @@ $script_path/query_dgraph.sh -t dql -q "
 			}
 		}
 	}
-" > $query_result
+"
 
 # Try to parse records from output. If it fails, print the whole query output to stderr
 jq -c -r '.data.results | .[] | ."Domain.name" as $domain | ."Domain.dnsRecords" | .[] | ."DnsRecord.type" as $type | ."DnsRecord.values" | .[] | [$domain, $type, .] | join(" ")' $query_result 2>/dev/null || >&2 jq -c '.' $query_result

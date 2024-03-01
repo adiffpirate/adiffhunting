@@ -5,7 +5,8 @@ trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 while true; do
 	$UTILS/op_start.sh
 
-	vuln=$($UTILS/query_dgraph.sh -t dql -q "{
+	query_result=$(mktemp)
+	$UTILS/query_dgraph.sh -o $query_result -t dql -q "{
 		results(func: has(Vuln.name)) @filter(not eq(Vuln.notified, true)) {
 			Vuln.name,
 			Vuln.updatedAt,
@@ -13,7 +14,8 @@ while true; do
 			Vuln.evidence { expand(_all_) }
 			Vuln.references
 		}
-	}" | yq -P '.data.results | .[]')
+	}"
+	vuln=$(yq -P '.data.results | .[]' $query_result)
 
 	if [ -n "$vuln" ]; then
 		$UTILS/_log.sh 'info' 'Vulnerability found! Sending alert' "vuln=$vuln"
@@ -43,7 +45,7 @@ while true; do
 				vuln { name, notified }
 			}
 		}
-	" > /dev/null
+	"
 
 	$UTILS/op_end.sh
 done

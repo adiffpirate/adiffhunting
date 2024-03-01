@@ -37,13 +37,13 @@ fi
 query_result=$(mktemp)
 
 get_domains(){
-	$script_path/query_dgraph.sh -q "
+	$script_path/query_dgraph.sh -o $query_result -q "
 		query {
 			queryTool ( $1 ) {
 				subdomains { name }
 			}
 		}
-	" > $query_result
+	"
 	
 	# Try to get domains. If it fails, print the query output to stderr
 	jq -c -r '.data.queryTool | .[].subdomains | .[].name' $query_result 2>/dev/null || >&2 jq -c '.' $query_result

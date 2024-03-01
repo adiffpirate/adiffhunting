@@ -78,7 +78,7 @@ while true; do
 					domain { name }
 				}
 			}
-		" > /dev/null
+		"
 	done
 
 	for record_type in 'a' 'aaaa' 'cname' 'ns' 'txt' 'srv' 'ptr' 'mx' 'soa' 'caa'; do

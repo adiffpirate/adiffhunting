@@ -14,17 +14,19 @@ flags:
 	-q query
 	-f query stored in file (mutually exclusive with -q)
 	-t query type (optional) (can be: graphql or dql) (defaults to graphql)
+	-o output file (optional) (defaults to none)
 "
 
 # Defaults
 query_type="graphql"
 
-while getopts ":h?q:f:t:" opt; do
+while getopts ":h?q:f:t:o:" opt; do
 	case "$opt" in
 		h) echo "$usage" && exit 0 ;;
 		q) arg_query=$OPTARG ;;
 		f) query_file=$OPTARG ;;
 		t) query_type=$OPTARG ;;
+		o) output=$OPTARG ;;
 	esac
 done
 if [ -z "$arg_query" ] && [ -z "$query_file" ]; then
@@ -39,6 +41,11 @@ fi
 if [ -z "$DGRAPH_ALPHA_HTTP_PORT" ]; then
 	>&2 echo "Please configure the DGRAPH_ALPHA_HTTP_PORT environment variable"
 	exit 1
+fi
+
+# If output was not defined, use temp file
+if [ -z "$output" ]; then
+	output=$(mktemp)
 fi
 
 if [ -n "$arg_query" ]; then
@@ -81,7 +88,6 @@ $script_path/_log.sh 'debug' 'Querying database' "query=$body"
 # Get start time
 start_time=$(date +%s%3N)
 
-output=$(mktemp)
 until curl --no-progress-meter --fail \
 	$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
 	--header "Content-Type: $content_type" \

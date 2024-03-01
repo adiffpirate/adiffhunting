@@ -38,7 +38,7 @@ get_domain(){
 				domain { name }
 			}
 		}
-	" > /dev/null
+	"
 
 	echo $domain
 }
