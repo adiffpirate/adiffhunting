@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: adh-recon-subprobe-dns
-          image: adiffhunting/recon-subprobe-dns:a79eae8
+          image: adiffhunting/recon-subprobe-dns:493e0b3
           env:
             - name: DEBUG
               value: "true"
