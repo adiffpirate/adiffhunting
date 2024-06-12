@@ -2,7 +2,7 @@
 
 Get subdomains count
 ```
-./query_dgraph.sh -t dql -q '{
+DEBUG=true ./query_dgraph.sh -t dql -q '{
     result(func: eq(Domain.type, "sub")) {
         count(uid)
     }
@@ -11,7 +11,7 @@ Get subdomains count
 
 Get companies
 ```
-./query_dgraph.sh -t dql -q '{
+DEBUG=true ./query_dgraph.sh -t dql -q '{
     result(func: has(Company.name)) @recurse(depth: 2) {
         expand(_all_)
     }
@@ -20,7 +20,7 @@ Get companies
 
 Get domains with level greater than 5 that has a CNAME record
 ```
-./query_dgraph.sh -t dql -q '{
+DEBUG=true ./query_dgraph.sh -t dql -q '{
   record as f(func: eq(DnsRecord.type, "CNAME")) @filter(has(DnsRecord.values)) {
     domain as DnsRecord.domain
   }
