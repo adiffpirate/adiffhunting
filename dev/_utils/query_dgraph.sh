@@ -99,9 +99,9 @@ done > $output
 
 # Parse output
 if [[ "$(jq 'has("errors")' $output)" == "true" ]]; then
-	$script_path/_log.sh 'error' 'Database query returned errors' "query_result=$(cat $output)"
+	$script_path/_log.sh 'error' 'Database query returned errors' "query_result=$output"
 else
-	$script_path/_log.sh 'debug' 'Database query successful' "query_result=$(cat $output)"
+	$script_path/_log.sh 'debug' 'Database query successful' "query_result=$output"
 fi
 
 # Get end time

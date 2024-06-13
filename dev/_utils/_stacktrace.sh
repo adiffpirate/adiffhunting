@@ -3,7 +3,7 @@
 script_path=$(dirname "$0")
 
 ERR_CODE=$1
-ERR_FILE=$2
+ERR_FILE=$(echo "$2" | sed 's/^\///') # If ERR_FILE is an absolute filepath removes the starting slash so it doesn't get it's content printed (thanks to the inner workings of _log.sh)
 ERR_COMMAND=$3
 ERR_LINE=$4
 
