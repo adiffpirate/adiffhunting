@@ -74,7 +74,7 @@ applications:
     sources:
       - repoURL: https://prometheus-community.github.io/helm-charts
         chart: kube-prometheus-stack
-        targetRevision: 56.6.2
+        targetRevision: 60.1.0
         helm:
           valueFiles:
             - $adiffhunting/ops/live/observability/prometheus-stack/values.yaml
