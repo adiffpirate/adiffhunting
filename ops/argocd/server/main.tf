@@ -141,7 +141,7 @@ resource "kubectl_manifest" "plugin_plain_and_encrypted_yaml_files" {
           generate:
             command: [
               sh, -c,
-              "find . -name '*.yaml' | xargs -I{} sh -c 'if grep apiVersion: | grep kind: | grep metadata: {} > /dev/null ; then echo --- ; sops -d {} 2>/dev/null || cat {}; fi'"
+              "find . -name '*.yaml' | xargs -I{} sh -c 'if grep -q apiVersion: {} && grep -q kind: {} && grep -q metadata: {} ; then echo --- ; sops -d {} 2>/dev/null || cat {}; fi'"
             ]
   YAML
 }
