@@ -14,7 +14,7 @@ flags:
 	-q query
 	-f query stored in file (mutually exclusive with -q)
 	-t query type (optional) (can be: graphql or dql) (defaults to graphql)
-	-o output file (optional) (defaults to none)
+	-o output file (optional) (use '/dev/stdout' to print to stdout) (defaults to none)
 "
 
 # Defaults
@@ -43,9 +43,14 @@ if [ -z "$DGRAPH_ALPHA_HTTP_PORT" ]; then
 	exit 1
 fi
 
-# If output was not defined, use temp file
-if [ -z "$output" ]; then
-	output=$(mktemp)
+# Determine if output should be printed to stdout based on flag
+if [[ "$output" == '/dev/stdout' ]]; then
+	print_output='true'
+fi
+
+# If output was not defined or is '/dev/stdout'
+if [ -z "$output" ] || [[ "$print_output" == 'true' ]]; then
+	output='/tmp/adh-utils-query_dgraph-output'
 fi
 
 if [ -n "$arg_query" ]; then
@@ -102,6 +107,11 @@ if [[ "$(jq 'has("errors")' $output)" == "true" ]]; then
 	$script_path/_log.sh 'error' 'Database query returned errors' "query_result=$output"
 else
 	$script_path/_log.sh 'debug' 'Database query successful' "query_result=$output"
+fi
+
+# Pretty print to stdout if output flag is '/dev/stdout'
+if [[ "$print_output" == 'true' ]]; then
+	jq '.' $output
 fi
 
 # Get end time
