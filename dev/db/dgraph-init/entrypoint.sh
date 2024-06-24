@@ -24,6 +24,10 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 	type Company {
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
+		programPage: String!
+		programPlatform: String! @search(by: [hash, term])
+		canHack: Boolean! @search
+		visibility: String! @search(by: [hash])
 		domains: [Domain]
 	}
 
@@ -90,12 +94,3 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		response: String
 	}
 ' | jq -c .
-
-mkdir /tmp/domains
-python3 $UTILS/parse_companies.py -f /src/data/companies.json -o /tmp/domains
-
-for company_domains_file in /tmp/domains/*; do
-	company=$(echo "$company_domains_file" | awk -F/ '{print $NF}' | awk -F. '{print $1}')
-	$UTILS/_log.sh 'info' 'Creating company' "company=$company"
-	$UTILS/save_company.sh -c "$company" -f "$company_domains_file" | jq -c .
-done

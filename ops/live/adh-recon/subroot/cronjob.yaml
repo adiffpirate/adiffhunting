@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: adh-recon-subroot
+spec:
+  schedule: "0 * * * *"  # Runs every hour at minute 0
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: adh-recon-subroot
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: adh-recon-subroot
+              image: adiffhunting/recon-subroot:aa9c3d5
+              env:
+                - name: DEBUG
+                  value: "true"
+                - name: DGRAPH_ALPHA_HOST
+                  value: "dgraph-alpha.adh-db"
+                - name: DGRAPH_ALPHA_HTTP_PORT
+                  value: "8080"
+                - name: HACKERONE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: adh-recon-subroot
+                      key: hackerone-user
+                - name: HACKERONE_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: adh-recon-subroot
+                      key: hackerone-token
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 128Mi
