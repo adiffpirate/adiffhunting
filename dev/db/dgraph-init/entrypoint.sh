@@ -7,7 +7,7 @@ $UTILS/wait_for_db.sh
 
 # Enable query logging
 $UTILS/_log.sh 'info' "Enabling query logging"
-curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin --data '
+curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin -H 'Content-Type: application/graphql' --data '
 	mutation {
 		config(input: {logDQLRequest: true}) {
 			response {
