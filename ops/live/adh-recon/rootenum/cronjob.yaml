@@ -14,7 +14,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: adh-recon-rootenum
-              image: adiffhunting/recon-rootenum:ef0bc40
+              image: adiffhunting/recon-rootenum:5057f98
               env:
                 - name: DEBUG
                   value: "true"
