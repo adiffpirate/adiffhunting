@@ -27,7 +27,14 @@ resolve(){
 			name: ( \"$record_type_uppercase: \" + .host ),
 			domain: { name: .host },
 			type: \"$record_type_uppercase\",
-			values: ( .\"$record_type\" // [] ),
+			values: ( (
+				.\"$record_type\" |
+					if (length > 0) and (.[0] | type == \"object\") then
+						map(to_entries | map(\"\(.key)=\(.value)\") | .[])
+					else
+						.
+					end
+			) // [] ),
 			updatedAt: .timestamp
 		}" || $UTILS/_log.sh 'error' 'Error while parsing DNS record' "record=$line"
 	done
