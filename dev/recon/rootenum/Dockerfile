@@ -4,7 +4,7 @@ FROM alpine:3.19.1
 RUN apk add --no-cache bash coreutils curl wget sed jq unzip python3 uuidgen
 
 # Install python modules
-RUN python3 -m pip install requests
+RUN apk add --no-cache py3-requests
 
 ENV UTILS=/src/_utils
 COPY _utils $UTILS
