@@ -28,11 +28,3 @@ spec:
               memory: 32Mi
             limits:
               memory: 32Mi
-          volumeMounts:
-            - name: adh-db-dgraph-init-data
-              mountPath: /src/data
-              readOnly: true
-      volumes:
-        - name: adh-db-dgraph-init-data
-          secret:
-            secretName: adh-db-dgraph-init-data
