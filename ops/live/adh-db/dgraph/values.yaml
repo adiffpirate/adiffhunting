@@ -17,10 +17,10 @@ alpha:
     type: NodePort
   persistence:
     size: 10Gi
-  extraFlags: -v=3 --security whitelist=0.0.0.0/0
+  extraFlags: -v=2 --security whitelist=0.0.0.0/0
   resources:
     requests:
       cpu: 300m
-      memory: 8Gi
+      memory: 12Gi
     limits:
-      memory: 8Gi
+      memory: 12Gi
