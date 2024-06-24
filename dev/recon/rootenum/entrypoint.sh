@@ -1,4 +1,7 @@
 #!/bin/bash
+
+script_path=$(dirname "$0")
+
 set -eEo pipefail
 trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
@@ -20,6 +23,6 @@ save_companies(){
 $UTILS/op_start.sh
 
 $UTILS/_log.sh 'info' 'Getting companies and their root domains from Hackerone'
-save_companies <(python3 crawl_hackerone.py)
+save_companies <(python3 $script_path/crawl_hackerone.py)
 
 $UTILS/op_end.sh
