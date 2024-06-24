@@ -21,6 +21,6 @@ alpha:
   resources:
     requests:
       cpu: 300m
-      memory: 4Gi
+      memory: 8Gi
     limits:
-      memory: 4Gi
+      memory: 8Gi

@@ -5,6 +5,19 @@ trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 export OP_ID=$(uuidgen -r)
 $UTILS/wait_for_db.sh
 
+# Enable query logging
+$UTILS/_log.sh 'info' "Enabling query logging"
+curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin --data '
+	mutation {
+		config(input: {logDQLRequest: true}) {
+			response {
+				code
+				message
+			}
+		}
+	}
+' | jq -c .
+
 # Create schemas
 $UTILS/_log.sh 'info' "Creating Schemas"
 curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
