@@ -24,3 +24,5 @@ alpha:
       memory: 12Gi
     limits:
       memory: 12Gi
+  startupProbe:
+    enabled: true
