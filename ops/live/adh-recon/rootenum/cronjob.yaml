@@ -11,7 +11,8 @@ spec:
           labels:
             app: adh-recon-rootenum
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
+          concurrencyPolicy: Forbid
           containers:
             - name: adh-recon-rootenum
               image: adiffhunting/recon-rootenum:6421018
