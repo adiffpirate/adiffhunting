@@ -93,7 +93,7 @@ start_time=$(date +%s%3N)
 
 while true; do # Loop to retry aborts
 
-	$script_path/_log.sh 'debug' 'Querying database' "query=$body"
+	$script_path/_log.sh 'debug' 'Querying database' "query=$body_file"
 
 	until curl --no-progress-meter --fail \
 		$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
@@ -105,7 +105,7 @@ while true; do # Loop to retry aborts
 	done > $output
 
 	if grep 'Transaction has been aborted' $output > /dev/null 2>&1; then
-		$script_path/_log.sh 'warn' 'Query has been aborted. Retrying in 5 seconds' "query_result=$output"
+		$script_path/_log.sh 'warn' 'Query has been aborted. Retrying in 5 seconds' "query=$body_file" "query_result=$output"
 		sleep 5
 	else
 		break
@@ -114,9 +114,9 @@ done
 
 # Parse output
 if [[ "$(jq 'has("errors")' $output)" == "true" ]]; then
-	$script_path/_log.sh 'error' 'Database query returned errors' "query_result=$output"
+	$script_path/_log.sh 'error' 'Database query returned errors' "query=$body_file" "query_result=$output"
 else
-	$script_path/_log.sh 'debug' 'Database query successful' "query_result=$output"
+	$script_path/_log.sh 'debug' 'Database query successful' "query=$body_file" "query_result=$output"
 fi
 
 # Pretty print to stdout if output flag is '/dev/stdout'
