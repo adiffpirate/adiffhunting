@@ -15,7 +15,7 @@ spec:
           concurrencyPolicy: Forbid
           containers:
             - name: adh-recon-rootenum
-              image: adiffhunting/recon-rootenum:8465fa4
+              image: adiffhunting/recon-rootenum:80889a8
               env:
                 - name: DEBUG
                   value: "true"
