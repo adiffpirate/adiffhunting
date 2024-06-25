@@ -23,6 +23,10 @@ def log_message(level, message, **kwargs):
     args = [f'{key}={value}' for key, value in kwargs.items()]
     subprocess.run([LOG_SCRIPT, level, message] + args, check=True)
 
+# Function to query database
+def query_database(query):
+    subprocess.run([os.path.join(UTILS_PATH, "query_dgraph.sh"), '-q', query], check=True)
+
 # Base URL for the API
 BASE_URL = "https://api.hackerone.com/v1/hackers/programs"
 
@@ -38,21 +42,23 @@ def process_data(data):
     processed_data = []
     for item in data:
         attributes = item['attributes']
-        program_handle = attributes['handle']
-        log_message('info', 'Parsing company', company=program_handle)
-        structured_scopes = fetch_structured_scopes(program_handle)
-        domains = process_structured_scopes(structured_scopes)
+        company_id = attributes['handle']
 
-        entry = {
-            'name': program_handle,
-            'programPage': f"https://hackerone.com/{program_handle}",
+        log_message('info', 'Parsing company', company=company_id)
+
+        company = {
+            'name': 'hackerone' if company_id == 'security' else company_id, # Special case for Hackerone self program
+            'programPage': f"https://hackerone.com/{company_id}",
             'programPlatform': 'hackerone',
             'canHack': attributes['submission_state'] == 'open',
-            'visibility': 'public' if attributes['state'] == 'public_mode' else 'private',
-            'domains': domains
+            'visibility': 'public' if attributes['state'] == 'public_mode' else 'private'
         }
-        processed_data.append(entry)
-    return processed_data
+
+        # Save company on database
+        query_database('mutation { addCompany(input: [' + json.dumps(company) + '], upsert: true){ company { name } } } ')
+
+        # Parse domains
+        process_structured_scopes(company_id, fetch_structured_scopes(company_id))
 
 # Function to fetch structured scopes for a given program
 def fetch_structured_scopes(handle):
@@ -68,9 +74,7 @@ def fetch_structured_scopes(handle):
     return structured_scopes
 
 # Function to process the structured scopes and extract domains
-def process_structured_scopes(scopes):
-    domains = []
-
+def process_structured_scopes(company_id, scopes):
     for scope in scopes:
         attributes = scope['attributes']
         asset_type = attributes['asset_type']
@@ -102,21 +106,20 @@ def process_structured_scopes(scopes):
             else: # Everything else is Sub (e.g. 'sub.foobar.com')
                 domain_type = 'sub'
 
-            domains.append({
+            domain = {
                 'name': domain,
                 'skipScans': domain_skip_scans,
                 'level': domain.count('.'),
                 'type': domain_type
-            })
+            }
 
-    # Calculate the number of eligible domains
-    eligible_count = 0
-    for domain in domains:
-        if not domain['skipScans']:
-            eligible_count += 1
+            if domain_type == 'root':
+                domain['company'] = { 'name': company_id }
 
-    log_message('info', 'Processed all domains on scope', total=len(domains), eligible=eligible_count)
-    return domains
+            # Save company on database
+            query_database('mutation { addDomain(input: [' + json.dumps(domain) + '], upsert: true){ domain { name } } } ')
+
+    log_message('info', 'Processed all domains on scope')
 
 # Main function to handle pagination and collect all data
 def main():
@@ -125,11 +128,9 @@ def main():
     log_message('info', 'Starting crawler')
 
     while url:
-        data = fetch_data(url)
-        final_data.extend(process_data(data['data']))
+        process_data(fetch_data(url)['data'])
         url = data['links'].get('next')
 
-    print(json.dumps(final_data, indent=2))
     log_message('info', 'Crawling completed successfully')
 
 if __name__ == "__main__":
