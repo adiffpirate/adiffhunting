@@ -20,9 +20,9 @@ resolve(){
 		# Treat line:
 		#   1. Escape backslash chars
 		#   2. Escape quotes inside values (run twice to handle overlapping matches)
-		#   3. Handle wongfully scaped "@" chars
+		#   3. Handle wrongfully escaped "@" chars
 		sed_pattern='s/([-_=+~;.!@#$%&*^" a-zA-Z0-9])"([-_=+~;.!@#$%&*^" a-zA-Z0-9])/\1\\"\2/g'
-		treated_line=$(echo "$line" | sed 's/\\/\\\\/g' | sed -E "$sed_pattern" | sed -E "$sed_pattern" | sed 's/\\@/@/g')
+		treated_line=$(echo "$line" | sed 's/\\/\\\\/g' | sed -E "$sed_pattern" | sed -E "$sed_pattern" | sed 's/\\\\@/@/g')
 
 		# Parse record
 		$UTILS/_log.sh 'debug' 'Parsing DNS record' "record=$treated_line" "record_before_treatment=$line"
