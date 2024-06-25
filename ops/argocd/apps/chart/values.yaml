@@ -32,7 +32,7 @@ applications:
     <<: *default
     destination:
       <<: *defaultDestination
-      namespace: adh-db
+      namespace: adh
 
   adh-alert:
     sources:
@@ -44,7 +44,7 @@ applications:
     <<: *default
     destination:
       <<: *defaultDestination
-      namespace: adh-alert
+      namespace: adh
 
   adh-recon:
     sources:
@@ -56,7 +56,7 @@ applications:
     <<: *default
     destination:
       <<: *defaultDestination
-      namespace: adh-recon
+      namespace: adh
 
   adh-exploit:
     sources:
@@ -68,7 +68,7 @@ applications:
     <<: *default
     destination:
       <<: *defaultDestination
-      namespace: adh-exploit
+      namespace: adh
 
   prometheus-stack:
     sources:
