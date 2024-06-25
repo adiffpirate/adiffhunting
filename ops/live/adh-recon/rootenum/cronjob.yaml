@@ -35,7 +35,7 @@ spec:
                       key: hackerone-token
               resources:
                 requests:
-                  cpu: 50m
-                  memory: 128Mi
+                  cpu: 250m
+                  memory: 64Mi
                 limits:
-                  memory: 128Mi
+                  memory: 64Mi
