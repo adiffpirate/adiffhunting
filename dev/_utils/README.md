@@ -25,7 +25,20 @@ Get companies
 }'
 ```
 
-Get domains with level greater than 5 that has a CNAME record
+Count domains that have a CNAME record
+```
+./query_dgraph.sh -o /dev/stdout -t dql -q '{
+    record as f(func: eq(DnsRecord.type, "CNAME")) @filter(has(DnsRecord.values)) {
+        domain as DnsRecord.domain
+    }
+    results(func: uid(domain)) {
+        count(uid)
+        Domain.dnsRecords @filter(uid(record))
+    }
+}'
+```
+
+Get domains with level greater than 5 that have a CNAME record
 ```
 ./query_dgraph.sh -o /dev/stdout -t dql -q '{
     record as f(func: eq(DnsRecord.type, "CNAME")) @filter(has(DnsRecord.values)) {
@@ -36,6 +49,6 @@ Get domains with level greater than 5 that has a CNAME record
         Domain.dnsRecords @filter(uid(record)) {
             DnsRecord.type, DnsRecord.values
         }
-	}
+    }
 }'
 ```
