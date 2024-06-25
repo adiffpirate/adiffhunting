@@ -34,7 +34,7 @@ domains_json_file=$(mktemp)
 python3 $script_path/parse_domains.py -f "$domains_csv_file" -t "$tool" > $domains_json_file
 
 # For each line
-$script_path/_log.sh 'info' 'Saving domains into the database' "amount=$(wc -l domains_json_file | awk '{print $1}')"
+$script_path/_log.sh 'info' 'Saving domains into the database' "amount=$(wc -l $domains_json_file | awk '{print $1}')"
 cat $domains_json_file | while read line; do
 	# Send query to database
 	$script_path/query_dgraph.sh -q "
