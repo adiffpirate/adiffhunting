@@ -132,5 +132,5 @@ jobs:
             git rebase origin/master
             git stash pop
             git add -A
-            git commit -m "{ops} Bump to image $IMAGE"
+            git commit -m "ops: bump to image $IMAGE"
             git push
