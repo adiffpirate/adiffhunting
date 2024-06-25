@@ -128,7 +128,8 @@ def main():
     log_message('info', 'Starting crawler')
 
     while url:
-        process_data(fetch_data(url)['data'])
+        data = fetch_data(url)
+        process_data(data['data'])
         url = data['links'].get('next')
 
     log_message('info', 'Crawling completed successfully')
