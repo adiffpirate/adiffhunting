@@ -28,7 +28,7 @@ get_domain(){
 		return
 	fi
 
-	$UTILS/_log.sh 'info' 'Updating lastPassiveEnumeration field' "domain=$domain"
+	$UTILS/_log.sh 'debug' 'Updating lastPassiveEnumeration field' "domain=$domain"
 	$UTILS/query_dgraph.sh -q "
 		mutation {
 			updateDomain(input: {
@@ -77,10 +77,10 @@ while true; do
 		continue
 	fi
 
-	$UTILS/_log.sh 'info' 'Running: Subfinder'
+	$UTILS/_log.sh 'info' 'Running: Subfinder' "domain=$domain"
 	run_and_save subfinder $domain
 
-	$UTILS/_log.sh 'info' 'Running: Chaos'
+	$UTILS/_log.sh 'info' 'Running: Chaos' "domain=$domain"
 	run_and_save chaos $domain
 
 	$UTILS/op_end.sh

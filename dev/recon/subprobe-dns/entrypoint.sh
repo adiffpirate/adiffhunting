@@ -56,10 +56,10 @@ resolve_and_save(){
 	done
 }
 
-domains=$(mktemp)
-
 while true; do
 	$UTILS/op_start.sh
+
+	domains=/tmp/adh-recon-subprobe-dns-domains
 
 	# Get 100 domains without the "lastProbe" field ordered by level so that higher levels are scanned first
 	$UTILS/get_domains.sh -f 'not has(Domain.lastProbe)' -a 'orderasc: Domain.level, first: 100' > $domains
@@ -74,7 +74,11 @@ while true; do
 		continue
 	fi
 
-	$UTILS/_log.sh 'info' 'Updating lastProbe field' "domains=$(cat $domains)"
+	# Save to file the domains list as JSON so it looks better on logs
+	domains_json=/tmp/adh-recon-subprobe-dns-domains.json
+	jq -R -s 'split("\n") | map(select(length > 0))' $domains > $domains_json
+
+	$UTILS/_log.sh 'debug' 'Updating lastProbe field' "domains=$domains_json"
 	cat $domains | while read domain; do
 		$UTILS/query_dgraph.sh -q "
 			mutation {
@@ -89,7 +93,7 @@ while true; do
 	done
 
 	for record_type in 'a' 'aaaa' 'cname' 'ns' 'txt' 'srv' 'ptr' 'mx' 'soa' 'caa'; do
-		$UTILS/_log.sh 'info' 'Running: DNSX' "record_type=$(echo $record_type | tr '[:lower:]' '[:upper:]')"
+		$UTILS/_log.sh 'info' 'Running: DNSX' "record_type=$(echo $record_type | tr '[:lower:]' '[:upper:]')" "domains=$domains_json"
 		resolve_and_save $domains $record_type
 	done
 
