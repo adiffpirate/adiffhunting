@@ -93,14 +93,23 @@ $script_path/_log.sh 'debug' 'Querying database' "query=$body"
 # Get start time
 start_time=$(date +%s%3N)
 
-until curl --no-progress-meter --fail \
-	$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
-	--header "Content-Type: $content_type" \
-	--data "@$body_file" \
-; do
-		$script_path/_log.sh 'info' 'Unable to reach database. Retrying in 5 seconds'
+while true; do # Loop to retry aborts
+	until curl --no-progress-meter --fail \
+		$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
+		--header "Content-Type: $content_type" \
+		--data "@$body_file" \
+	; do
+			$script_path/_log.sh 'info' 'Unable to reach database. Retrying in 5 seconds'
+			sleep 5
+	done > $output
+
+	if grep 'Transaction has been aborted' $output; then
+		$script_path/_log.sh 'warn' 'Query has been aborted. Retrying in 5 seconds' "query_result=$output"
 		sleep 5
-done > $output
+	else
+		break
+	fi
+done
 
 # Parse output
 if [[ "$(jq 'has("errors")' $output)" == "true" ]]; then
