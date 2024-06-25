@@ -24,10 +24,10 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 	type Company {
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
-		programPage: String!
-		programPlatform: String! @search(by: [hash, term])
-		canHack: Boolean! @search
-		visibility: String! @search(by: [hash])
+		programPage: String
+		programPlatform: String @search(by: [hash, term])
+		canHack: Boolean @search
+		visibility: String @search(by: [hash])
 		domains: [Domain] @hasInverse(field: company)
 	}
 
