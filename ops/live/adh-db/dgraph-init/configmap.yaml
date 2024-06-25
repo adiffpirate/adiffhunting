@@ -4,4 +4,4 @@ metadata:
   name: adh-db-dgraph-init-workaround
 data:
   description: "Workaround to force hook job creation when image tag changes"
-  image: adiffhunting/db-dgraph-init:8465fa4
+  image: adiffhunting/db-dgraph-init:80889a8
