@@ -88,12 +88,13 @@ fi
 # Save body to file
 body_file=$(mktemp) && echo "$body" > $body_file
 
-$script_path/_log.sh 'debug' 'Querying database' "query=$body"
-
 # Get start time
 start_time=$(date +%s%3N)
 
 while true; do # Loop to retry aborts
+
+	$script_path/_log.sh 'debug' 'Querying database' "query=$body"
+
 	until curl --no-progress-meter --fail \
 		$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
 		--header "Content-Type: $content_type" \
@@ -103,7 +104,7 @@ while true; do # Loop to retry aborts
 			sleep 5
 	done > $output
 
-	if grep 'Transaction has been aborted' $output; then
+	if grep 'Transaction has been aborted' $output > /dev/null 2>&1; then
 		$script_path/_log.sh 'warn' 'Query has been aborted. Retrying in 5 seconds' "query_result=$output"
 		sleep 5
 	else
