@@ -3,7 +3,8 @@ kind: CronJob
 metadata:
   name: adh-recon-rootenum
 spec:
-  schedule: "0 */2 * * *"  # Runs every two hours at minute 0
+  schedule: "0 */6 * * *"  # Runs every six hours at minute 0
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
@@ -12,7 +13,6 @@ spec:
             app: adh-recon-rootenum
         spec:
           restartPolicy: Never
-          concurrencyPolicy: Forbid
           containers:
             - name: adh-recon-rootenum
               image: adiffhunting/recon-rootenum:1aa93f7
