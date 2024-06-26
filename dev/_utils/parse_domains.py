@@ -99,7 +99,7 @@ def main():
             tmp['foundBy'] = [{"name": args.tool.split(':')[0], "type": args.tool.split(':')[1]}]
 
         # Generate random seed
-        tmp['randomSeed'] = uuid.uuid4()
+        tmp['randomSeed'] = str(uuid.uuid4())
 
         # Print JSON
         print(json.dumps(tmp))
