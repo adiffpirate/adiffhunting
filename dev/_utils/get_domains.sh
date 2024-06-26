@@ -38,7 +38,7 @@ fi
 
 $script_path/query_dgraph.sh -o $query_result -t dql -q "
 	{
-		results(func: anyofterms(Domain.type, \"root sub\") $(if [ -n "$args" ]; then echo ",$args"; fi))
+		results(func: anyofterms(Domain.type, \"root sub\"), orderasc: Domain.randomSeed $(if [ -n "$args" ]; then echo ",$args"; fi))
 		@filter(not eq(Domain.skipScans, true) $(if [ -n "$filter" ]; then echo "and $filter"; fi))
 		{
 			Domain.name

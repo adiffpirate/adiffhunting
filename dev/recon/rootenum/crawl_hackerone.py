@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import re
+import uuid
 
 # Get HackerOne API credentials from environment variables
 HACKERONE_USER = os.getenv('HACKERONE_USER')
@@ -115,6 +116,9 @@ def process_structured_scopes(company_id, scopes):
 
             if domain_type == 'root':
                 domain['company'] = { 'name': company_id }
+
+            # Generate random seed
+            domain['randomSeed'] = str(uuid.uuid4())
 
             # Save company on database
             query_database('mutation { addDomain(input: [' + json.dumps(domain) + '], upsert: true){ domain { name } } } ')
