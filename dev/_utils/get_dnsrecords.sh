@@ -44,7 +44,7 @@ $script_path/query_dgraph.sh -o $query_result -t dql -q "
 			domain as DnsRecord.domain
 		}
 
-		results(func: uid(domain) $(if [ -n "$args" ]; then echo ",$args"; fi))
+		results(func: uid(domain), orderasc: Domain.randomSeed $(if [ -n "$args" ]; then echo ",$args"; fi))
 		@filter(not eq(Domain.skipScans, true) $(if [ -n "$filter" ]; then echo "and $filter"; fi))
 		{
 			Domain.name,
