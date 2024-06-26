@@ -86,7 +86,7 @@ def process_structured_scopes(company_id, scopes):
 
             if domain.startswith('*.'):  # If domain is wildcard
                 domain = domain[2:]  # Remove the starting "*."
-                if attributes['eligible_for_submission']:
+                if attributes['eligible_for_submission'] and attributes['eligible_for_bounty']:
                     # Only run security scans on eligible wildcard domains
                     domain_skip_scans = False
 
