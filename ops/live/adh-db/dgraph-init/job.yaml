@@ -1,10 +1,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: adh-db-dgraph-init
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  name: adh-db-dgraph-init
+  namespace: adh
 spec:
   completions: 1
   parallelism: 1
