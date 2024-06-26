@@ -4,6 +4,7 @@ import re
 import json
 import csv
 import sys
+import uuid
 
 def main():
     parser = argparse.ArgumentParser(
@@ -93,9 +94,12 @@ def main():
         # Get level
         tmp['level'] = domain.count('.') + 1
 
-        # Get tool (only for subdomains since rootdomains are added by dgraph-init)
+        # Get tool (only for subdomains since rootdomains are added by rootenum)
         if args.tool and tmp['type'] == 'sub':
             tmp['foundBy'] = [{"name": args.tool.split(':')[0], "type": args.tool.split(':')[1]}]
+
+        # Generate random seed
+        tmp['randomSeed'] = uuid.uuid4()
 
         # Print JSON
         print(json.dumps(tmp))

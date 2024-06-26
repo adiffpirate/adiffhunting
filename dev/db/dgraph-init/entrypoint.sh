@@ -37,6 +37,7 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		level: Int @search
 		type: String @search(by: [hash, term])
 		company: Company @hasInverse(field: domains)
+		randomSeed: String @search(by: [hash]) # Workaround so we can query for random domains since dgraph doesnt have that built-in
 		subdomains: [Domain]
 
 		skipScans: Boolean @search
