@@ -9,6 +9,8 @@ spec:
   selector:
     matchLabels:
       app: adh-alert-vuln
+  strategy:
+   type: Recreate
   template:
     metadata:
       labels:
