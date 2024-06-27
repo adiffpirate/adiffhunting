@@ -77,12 +77,10 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		scheme: String @search(by: [hash, term])
 		method: String @search(by: [hash, term])
 		statusCode: Int @search
-		class: String @search(by: [hash, term])
-		title: String @search(by: [hash, regexp])
+		category: String @search(by: [hash, term])
 		location: String @search(by: [hash, regexp])
 		contentType: String @search(by: [hash, term])
-		headers: String @search(by: [regexp])
-		body: String @search(by: [regexp])
+		contentLength: Int @search
 		updatedAt: DateTime @search(by: [hour])
 	}
 

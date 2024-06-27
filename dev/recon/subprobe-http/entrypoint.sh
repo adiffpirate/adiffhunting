@@ -19,12 +19,10 @@ probe(){
 			scheme: .scheme,
 			method: .method,
 			statusCode: ."status_code",
-			class: .knowledgebase.PageType,
-			title: .title,
+			category: .knowledgebase.PageType,
 			location: .location,
 			contentType: ."content_type",
-			headers: .raw_header,
-			body: .body,
+			contentLength: ."content_length",
 			updatedAt: .timestamp
 		}' || $UTILS/_log.sh 'error' 'Error while parsing output' "output=$line"
 	done
