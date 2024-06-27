@@ -22,7 +22,7 @@ query_type="graphql"
 
 while getopts ":h?q:f:t:o:" opt; do
 	case "$opt" in
-		h) echo "$usage" && exit 0 ;;
+		h) echo -E "$usage" && exit 0 ;;
 		q) arg_query=$OPTARG ;;
 		f) query_file=$OPTARG ;;
 		t) query_type=$OPTARG ;;
@@ -30,16 +30,16 @@ while getopts ":h?q:f:t:o:" opt; do
 	esac
 done
 if [ -z "$arg_query" ] && [ -z "$query_file" ]; then
-	echo "$usage"
+	echo -E "$usage"
 	exit 1
 fi
 
 if [ -z "$DGRAPH_ALPHA_HOST" ]; then
-	>&2 echo "Please configure the DGRAPH_ALPHA_HOST environment variable"
+	>&2 echo -E "Please configure the DGRAPH_ALPHA_HOST environment variable"
 	exit 1
 fi
 if [ -z "$DGRAPH_ALPHA_HTTP_PORT" ]; then
-	>&2 echo "Please configure the DGRAPH_ALPHA_HTTP_PORT environment variable"
+	>&2 echo -E "Please configure the DGRAPH_ALPHA_HTTP_PORT environment variable"
 	exit 1
 fi
 
@@ -63,11 +63,11 @@ fi
 #   1. Turn into one line string
 #   2. Escape backslashes
 #   3. Remove quotes from keys
-query=$(printf '%s' "$query" | while read -r line; do printf '%s' "$line" | sed 's/\\/\\\\/g' | sed -E 's/"([^"]*)":/\1:/g'; done) # )
+query=$(echo -E "$query" | while read -r line; do echo -E "$line" | sed 's/\\/\\\\/g' | sed -E 's/"([^"]*)":/\1:/g'; done) # )
 
 # Prepare request
 if [[ "$query_type" == "graphql" ]] ; then
-	body="{\"query\":\"$(printf '%s' "$query" | sed 's/"/\\"/g')\"}"
+	body="{\"query\":\"$(echo -E "$query" | sed 's/"/\\"/g')\"}"
 	content_type="application/json"
 	path="graphql"
 elif [[ "$query_type" == "dql" ]]; then
@@ -81,12 +81,12 @@ elif [[ "$query_type" == "dql" ]]; then
 		path="query?ro=true"
 	fi
 else
-	echo "$usage"
+	echo -E "$usage"
 	exit 1
 fi
 
 # Save body to file
-body_file=$(mktemp) && printf '%s' "$body" > $body_file
+body_file=$(mktemp) && echo -E "$body" > $body_file
 
 # Get start time
 start_time=$(date +%s%3N)
