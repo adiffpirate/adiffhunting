@@ -9,7 +9,7 @@ probe(){
 
 	# Run HTTPX and print its output as JSON Lines according to database schema
 	httpx -list $domains -silent -include-response -rate-limit 10 -threads 2 -json -x $http_method \
-	| while IFS= read -r line; do
+	| while read -r line; do
 		# Parse output
 		$UTILS/_log.sh 'debug' 'Parsing output' "output=$line"
 		printf '%s' "$line" | jq -c '{
@@ -35,7 +35,7 @@ probe_and_save(){
 	http_method=$2
 
 	# Probe and save responses on database, one at a time
-	probe $domains $http_method | while IFS= read -r line; do
+	probe $domains $http_method | while read -r line; do
 		$UTILS/query_dgraph.sh -q "
 			mutation {
 				addHttpResponse(input: [$line], upsert: true){
@@ -69,7 +69,7 @@ while true; do
 	jq -R -s 'split("\n") | map(select(length > 0))' $domains > $domains_json
 
 	$UTILS/_log.sh 'debug' 'Updating lastProbe field' "domains=$domains_json"
-	cat $domains | while IFS= read -r domain; do
+	cat $domains | while read -r domain; do
 		$UTILS/query_dgraph.sh -q "
 			mutation {
 				updateDomain(input: {
@@ -83,7 +83,7 @@ while true; do
 	done
 
 	for http_method in 'get' 'post' 'put' 'patch' 'delete'; do
-		$UTILS/_log.sh 'info' 'Running: HTTPX' "http_method=$(echo $http_method | tr '[:lower:]' '[:upper:]')" "domains=$domains_json"
+		$UTILS/_log.sh 'info' 'Running: HTTPX' "http_method=$(echo "$http_method" | tr '[:lower:]' '[:upper:]')" "domains=$domains_json"
 		probe_and_save $domains $http_method
 	done
 
