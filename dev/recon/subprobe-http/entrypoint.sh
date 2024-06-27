@@ -9,7 +9,7 @@ probe(){
 
 	# Run HTTPX and print its output as JSON Lines according to database schema
 	httpx -list $domains -silent -include-response -rate-limit 10 -threads 2 -json -x $http_method \
-	| while read line; do
+	| while IFS= read -r line; do
 		# Parse output
 		$UTILS/_log.sh 'debug' 'Parsing output' "output=$line"
 		echo "$line" | jq -c '{
