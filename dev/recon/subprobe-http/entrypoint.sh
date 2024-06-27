@@ -35,7 +35,7 @@ probe_and_save(){
 	http_method=$2
 
 	# Probe and save responses on database, one at a time
-	probe $domains $http_method | while read line; do
+	probe $domains $http_method | while IFS= read -r line; do
 		$UTILS/query_dgraph.sh -q "
 			mutation {
 				addHttpResponse(input: [$line], upsert: true){
@@ -69,7 +69,7 @@ while true; do
 	jq -R -s 'split("\n") | map(select(length > 0))' $domains > $domains_json
 
 	$UTILS/_log.sh 'debug' 'Updating lastProbe field' "domains=$domains_json"
-	cat $domains | while read domain; do
+	cat $domains | while IFS= read -r domain; do
 		$UTILS/query_dgraph.sh -q "
 			mutation {
 				updateDomain(input: {
