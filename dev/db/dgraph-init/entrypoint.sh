@@ -48,6 +48,7 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 
 		foundBy: [Tool] @hasInverse(field: subdomains)
 		dnsRecords: [DnsRecord] @hasInverse(field: domain)
+		httpResponses: [HttpResponse] @hasInverse(field: domain)
 		vulns: [Vuln] @hasInverse(field: domain)
 	}
 
@@ -65,6 +66,23 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		domain: Domain @hasInverse(field: dnsRecords)
 		type: String @search(by: [hash, term])
 		values: [String] @search(by: [hash, regexp])
+		updatedAt: DateTime @search(by: [hour])
+	}
+
+	type HttpResponse {
+		id: ID!
+		name: String! @id @search(by: [hash, regexp])
+		domain: Domain @hasInverse(field: httpResponses)
+		url: String  @search(by: [hash, regexp])
+		scheme: String @search(by: [hash, term])
+		method: String @search(by: [hash, term])
+		statusCode: Int @search
+		class: String @search(by: [hash, term])
+		title: String @search(by: [hash, regexp])
+		location: String @search(by: [hash, regexp])
+		contentType: String @search(by: [hash, term])
+		headers: String @search(by: [regexp])
+		body: String @search(by: [regexp])
 		updatedAt: DateTime @search(by: [hour])
 	}
 

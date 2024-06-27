@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: adh-recon-subprobe-http
+  name: adh-recon-subprobe-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adh-recon-subprobe-http
+  template:
+    metadata:
+      labels:
+        app: adh-recon-subprobe-http
+    spec:
+      containers:
+        - name: adh-recon-subprobe-http
+          image: adiffhunting/recon-subprobe-http:placeholder
+          env:
+            - name: DEBUG
+              value: "true"
+            - name: DGRAPH_ALPHA_HOST
+              value: "dgraph-alpha"
+            - name: DGRAPH_ALPHA_HTTP_PORT
+              value: "8080"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 128Mi
+            limits:
+              memory: 128Mi
