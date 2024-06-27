@@ -40,7 +40,7 @@ probe_and_save(){
 		$UTILS/query_dgraph.sh -q "
 			mutation {
 				addHttpResponse(input: [$line], upsert: true){
-					httpResponse { name, statusCode, class }
+					httpResponse { name, statusCode }
 				}
 			}
 		"
