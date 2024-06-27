@@ -54,24 +54,24 @@ if [ -z "$output" ] || [[ "$print_output" == 'true' ]]; then
 fi
 
 if [ -n "$arg_query" ]; then
-	initial_query=$arg_query
+	query="$arg_query"
 else
-	initial_query=$(cat $query_file)
+	query=$(cat $query_file)
 fi
 
 # Prepare query
-#   1. Remove return/tab chars
-#   2. Turn into one line string
+#   1. Turn into one line string
+#   2. Escape backslashes
 #   3. Remove quotes from keys
-query=$(echo "$initial_query" | sed 's/\\n//g' | sed 's/\\t//g' | sed 's/\\r//g' | while read line; do echo -n "$line"; done | sed -E 's/"([^"]*)":/\1:/g')
+query=$(printf '%s' "$query" | while read -r line; do printf '%s' "$line" | sed 's/\\/\\\\/g' | sed -E 's/"([^"]*)":/\1:/g'; done) # )
 
 # Prepare request
 if [[ "$query_type" == "graphql" ]] ; then
-	body="{\"query\":\"$(echo $query | sed 's/"/\\"/g')\"}"
+	body="{\"query\":\"$(printf '%s' "$query" | sed 's/"/\\"/g')\"}"
 	content_type="application/json"
 	path="graphql"
 elif [[ "$query_type" == "dql" ]]; then
-	body=$query
+	body="$query"
 	# Set content type and path based on body
 	if [[ "$body" =~ ^( )*(upsert) ]]; then
 		content_type="application/rdf"
@@ -85,15 +85,17 @@ else
 	exit 1
 fi
 
+printf '%s' "$body"
+
 # Save body to file
-body_file=$(mktemp) && echo "$body" > $body_file
+body_file=$(mktemp) && printf '%s' "$body" > $body_file
 
 # Get start time
 start_time=$(date +%s%3N)
 
 while true; do # Loop to retry aborts
 
-	$script_path/_log.sh 'debug' 'Querying database' "initial_query=$initial_query" "query=$body_file"
+	$script_path/_log.sh 'debug' 'Querying database' "query=$body_file"
 
 	until curl --no-progress-meter --fail \
 		$DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/$path \
@@ -105,7 +107,7 @@ while true; do # Loop to retry aborts
 	done > $output
 
 	if grep 'Transaction has been aborted' $output > /dev/null 2>&1; then
-		$script_path/_log.sh 'warn' 'Query has been aborted. Retrying in 5 seconds' "initial_query=$initial_query" "query=$body_file" "query_result=$output"
+		$script_path/_log.sh 'warn' 'Query has been aborted. Retrying in 5 seconds' "query=$body_file" "query_result=$output"
 		sleep 5
 	else
 		break
@@ -114,9 +116,9 @@ done
 
 # Parse output
 if [[ "$(jq 'has("errors")' $output)" == "true" ]]; then
-	$script_path/_log.sh 'error' 'Database query returned errors' "initial_query=$initial_query" "query=$body_file" "query_result=$output"
+	$script_path/_log.sh 'error' 'Database query returned errors' "query=$body_file" "query_result=$output"
 else
-	$script_path/_log.sh 'debug' 'Database query successful' "initial_query=$initial_query" "query=$body_file" "query_result=$output"
+	$script_path/_log.sh 'debug' 'Database query successful' "query=$body_file" "query_result=$output"
 fi
 
 # Pretty print to stdout if output flag is '/dev/stdout'
