@@ -8,7 +8,7 @@ probe(){
 	http_method_uppercase=$(echo -E "$http_method" | tr '[:lower:]' '[:upper:]')
 
 	# Run HTTPX and print its output as JSON Lines according to database schema
-	httpx -list $domains -silent -include-response -rate-limit 10 -threads 2 -json -x $http_method \
+	httpx -list $domains -silent -rate-limit 10 -threads 2 -json -x $http_method \
 	| while read -r line; do
 		# Parse output
 		$UTILS/_log.sh 'debug' 'Parsing output' "output=$line"
