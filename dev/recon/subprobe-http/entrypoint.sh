@@ -13,7 +13,7 @@ probe(){
 		# Parse output
 		$UTILS/_log.sh 'debug' 'Parsing output' "output=$line"
 		echo "$line" | jq -c '{
-			name: .method + " " + .url,
+			name: ( .method + " " + .url ),
 			domain: { name: (.url | capture("^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?<domain>[^/]+)").domain) },
 			url: .url,
 			scheme: .scheme,
