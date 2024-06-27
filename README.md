@@ -21,6 +21,7 @@ to showcase my knowledge in Cloud DevOps Engineering for job interviews :stuck_o
 
 ```sh
 export ADH_APPS_NAMESPACE='adh' && export ADH_OBSERVABILITY_NAMESPACE='observability' \
+&& git pull \
 && helm repo add dgraph https://charts.dgraph.io \
 && helm repo add prometheus-community https://prometheus-community.github.io/helm-charts \
 && helm repo add grafana https://grafana.github.io/helm-charts \
