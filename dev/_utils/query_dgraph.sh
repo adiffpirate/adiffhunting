@@ -85,8 +85,6 @@ else
 	exit 1
 fi
 
-printf '%s' "$body"
-
 # Save body to file
 body_file=$(mktemp) && printf '%s' "$body" > $body_file
 
