@@ -5,14 +5,14 @@ trap '$UTILS/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 probe(){
 	domains=$1
 	http_method=$2
-	http_method_uppercase=$(echo "$http_method" | tr '[:lower:]' '[:upper:]')
+	http_method_uppercase=$(echo -E "$http_method" | tr '[:lower:]' '[:upper:]')
 
 	# Run HTTPX and print its output as JSON Lines according to database schema
 	httpx -list $domains -silent -include-response -rate-limit 10 -threads 2 -json -x $http_method \
 	| while read -r line; do
 		# Parse output
 		$UTILS/_log.sh 'debug' 'Parsing output' "output=$line"
-		printf '%s' "$line" | jq -c '{
+		echo -E "$line" | jq -c '{
 			name: ( .method + " " + .url ),
 			domain: { name: (.url | capture("^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?<domain>[^/]+)").domain) },
 			url: .url,
@@ -84,7 +84,7 @@ while true; do
 	done
 
 	for http_method in 'get' 'post' 'put' 'patch' 'delete'; do
-		$UTILS/_log.sh 'info' 'Running: HTTPX' "http_method=$(echo "$http_method" | tr '[:lower:]' '[:upper:]')" "domains=$domains_json"
+		$UTILS/_log.sh 'info' 'Running: HTTPX' "http_method=$(echo -E "$http_method" | tr '[:lower:]' '[:upper:]')" "domains=$domains_json"
 		probe_and_save $domains $http_method
 	done
 
