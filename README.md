@@ -30,7 +30,7 @@ export ADH_APPS_NAMESPACE='adh' && export ADH_OBSERVABILITY_NAMESPACE='observabi
 && helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace --values ops/live/observability/prometheus-stack/values.yaml \
 && helm upgrade --install promtail grafana/promtail --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace --values ops/live/observability/promtail/values.yaml \
 && helm upgrade --install loki grafana/loki --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace --values ops/live/observability/loki/values.yaml \
-&& find ops/live -name '*.yaml' | xargs -I{} sh -c 'if grep -q apiVersion: {} && grep -q kind: {} && grep -q metadata: {} ; then echo --- ; sops -d {} 2>/dev/null || cat {}; fi' | kubectl apply -n $ADH_APPS_NAMESPACE -f -
+&& find ops/live -name '*.yaml' | xargs -I{} sh -c 'if grep -q apiVersion: {} && grep -q kind: {} && grep -q metadata: {} ; then echo --- ; sops -d {} 2>/dev/null || cat {}; fi' | kubectl apply -n $ADH_APPS_NAMESPACE --force -f -
 ```
 
 > Previously, I had ArgoCD installed for GitOps, but I found it unnecessary due to the low frequency
