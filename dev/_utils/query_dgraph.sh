@@ -60,10 +60,10 @@ else
 fi
 
 # Prepare query
-#   1. Turn into one line string
+#   1. Turn into one line string, removing newlines and tabs
 #   2. Escape backslashes
 #   3. Remove quotes from keys
-query=$(echo -E "$query" | while read -r line; do echo -E "$line" | sed 's/\\/\\\\/g' | sed -E 's/"([^"]*)":/\1:/g'; done) # )
+query=$(echo -E "$query" | while read -r line; do echo -nE "$line" | sed 's/\\/\\\\/g' | sed -E 's/"([^"]*)":/\1:/g'; done) # )
 
 # Prepare request
 if [[ "$query_type" == "graphql" ]] ; then
