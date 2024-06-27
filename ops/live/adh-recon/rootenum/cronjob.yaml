@@ -17,7 +17,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: adh-recon-rootenum
-              image: adiffhunting/recon-rootenum:b4a79b2
+              image: adiffhunting/recon-rootenum:18b8ce7
               env:
                 - name: DEBUG
                   value: "true"
