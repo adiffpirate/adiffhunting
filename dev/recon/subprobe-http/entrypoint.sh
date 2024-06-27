@@ -36,6 +36,7 @@ probe_and_save(){
 
 	# Probe and save responses on database, one at a time
 	probe $domains $http_method | while read -r line; do
+		$UTILS/_log.sh 'debug' 'Saving response on database' "response=$line"
 		$UTILS/query_dgraph.sh -q "
 			mutation {
 				addHttpResponse(input: [$line], upsert: true){
