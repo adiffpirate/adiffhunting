@@ -35,7 +35,7 @@ elif [ -n "$vuln" ]; then
 	children='Vuln.evidence'
 fi
 
-if [ -z "$filter" || -z "$children" ]; then
+if [ -n "$filter" ] && [ -n "$children" ]; then
 	echo "$usage"
 	exit 1
 fi

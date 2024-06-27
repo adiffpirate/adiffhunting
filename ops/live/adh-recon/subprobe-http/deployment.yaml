@@ -18,11 +18,7 @@ spec:
     spec:
       containers:
         - name: adh-recon-subprobe-http
-<<<<<<< Updated upstream
           image: adiffhunting/recon-subprobe-http:8b22390
-=======
-          image: adiffhunting/recon-subprobe-http:e9043d3
->>>>>>> Stashed changes
           env:
             - name: DEBUG
               value: "true"
