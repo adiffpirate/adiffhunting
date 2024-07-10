@@ -21,8 +21,8 @@ alpha:
   resources:
     requests:
       cpu: 150m
-      memory: 2Gi
+      memory: 4Gi
     limits:
-      memory: 2Gi
+      memory: 4Gi
   startupProbe:
     enabled: true
