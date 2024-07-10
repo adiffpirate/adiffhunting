@@ -46,32 +46,29 @@ probe_and_save(){
 }
 
 get_domains(){
+	records=/tmp/adh-recon-subprobe-http-get-domains-records
+
+	# Get A/AAAA/CNAME values from 100 domains without the "lastExploit" field
+	$UTILS/get_dnsrecords.sh -t 'A AAAA CNAME' -f "not has(Domain.lastExploit)" -a 'first: 100' > $records
+	# If all domains have "lastExploit", get 100 oldests that are at least older than $DOMAIN_SCAN_COOLDOWN
+	if [ ! -s "$records" ]; then
+		$UTILS/get_dnsrecords.sh -t 'A AAAA CNAME' \
+			-f "lt(Domain.lastExploit, \"$(date -Iseconds -d "-$DOMAIN_SCAN_COOLDOWN")\")" \
+			-a 'first: 100, orderasc: Domain.lastExploit' \
+		> $records
+	fi
+
+	if [ ! -s "$records" ]; then # Return if unable to get records
+		return
+	fi
+
+	# Get domains from cname records
+	$UTILS/_log.sh 'debug' 'Parsing records' "records=$records"
 	domains=/tmp/adh-recon-subprobe-http-get-domains-domains
-	echo -En '' > $domains # Clean file
+	awk '{print $1}' $records | sort -u > $domains
 
-	for record_type in 'A' 'AAAA' 'CNAME'; do
-		records=/tmp/adh-recon-subprobe-http-get-domains-records
-		# Get records from 50 domains without the "lastProbe" field inverse ordered by level so that higher levels are scanned first
-		$UTILS/get_dnsrecords.sh -t "$record_type" -f "not has(Domain.lastProbe)" -a 'orderdesc: Domain.level, first: 50' > $records
-		# If all domains have "lastProbe", get 50 oldests that are at least older than $DOMAIN_SCAN_COOLDOWN
-		if [ ! -s "$records" ]; then
-			$UTILS/get_dnsrecords.sh -t CNAME \
-				-f "$filter and lt(Domain.lastProbe, \"$(date -Iseconds -d "-$DOMAIN_SCAN_COOLDOWN")\")" \
-				-a 'first: 50, orderasc: Domain.lastProbe' \
-			> $records
-		fi
-
-		if [ ! -s "$records" ]; then # Jump to next iteration if unable to get records
-			continue
-		fi
-
-		# Save domains from records
-		$UTILS/_log.sh 'debug' 'Getting domains from records' "records=$records"
-		awk '{print $1}' $records >> $domains
-	done
-
-	# Print unique domains
-	sort -u $domains
+	# Print domains
+	cat $domains
 }
 
 while true; do
