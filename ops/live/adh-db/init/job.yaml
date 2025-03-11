@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: adh-db-dgraph-init
+  name: adh-db-init
   namespace: adh
 spec:
   completions: 1
@@ -11,8 +11,8 @@ spec:
     spec:
       restartPolicy: Never
       containers:
-        - name: adh-db-dgraph-init
-          image: adiffhunting/db-dgraph-init:f0c9ece
+        - name: adh-db-init
+          image: adiffhunting/db-init:f0c9ece
           env:
             - name: DEBUG
               value: "false"

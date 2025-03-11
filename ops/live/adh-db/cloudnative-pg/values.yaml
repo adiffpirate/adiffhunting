@@ -1,0 +1,7 @@
+config:
+  clusterWide: false
+
+monitoring:
+  podMonitorEnabled: true
+  grafanaDashboard:
+    create: true
