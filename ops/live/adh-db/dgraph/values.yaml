@@ -1,7 +1,7 @@
 fullnameOverride: dgraph
 
 zero:
-  replicaCount: 3
+  replicaCount: 1
   persistence:
     size: 3Gi
   resources:
@@ -12,7 +12,7 @@ zero:
       memory: 128Mi
 
 alpha:
-  replicaCount: 3
+  replicaCount: 1
   service:
     type: NodePort
   persistence:
@@ -21,8 +21,8 @@ alpha:
   resources:
     requests:
       cpu: 150m
-      memory: 5Gi
+      memory: 4Gi
     limits:
-      memory: 5Gi
+      memory: 4Gi
   startupProbe:
     enabled: true

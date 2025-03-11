@@ -17,20 +17,10 @@ to showcase my knowledge in Cloud DevOps Engineering for job interviews :stuck_o
 
 2. Connect to a Kubernetes Cluster.
 
-3. Run the following commands to install everything:
+3. Run the following script to install everything:
 
 ```sh
-export ADH_APPS_NAMESPACE='adh' && export ADH_OBSERVABILITY_NAMESPACE='observability' \
-&& git pull \
-&& helm repo add dgraph https://charts.dgraph.io \
-&& helm repo add prometheus-community https://prometheus-community.github.io/helm-charts \
-&& helm repo add grafana https://grafana.github.io/helm-charts \
-&& helm repo update \
-&& helm upgrade --install dgraph dgraph/dgraph --namespace $ADH_APPS_NAMESPACE --create-namespace --values ops/live/adh-db/dgraph/values.yaml \
-&& helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace --values ops/live/observability/prometheus-stack/values.yaml \
-&& helm upgrade --install promtail grafana/promtail --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace --values ops/live/observability/promtail/values.yaml \
-&& helm upgrade --install loki grafana/loki --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace --values ops/live/observability/loki/values.yaml \
-&& find ops/live -name '*.yaml' | xargs -I{} sh -c 'if grep -q apiVersion: {} && grep -q kind: {} && grep -q metadata: {} ; then echo --- ; sops -d {} 2>/dev/null || cat {}; fi' | kubectl apply -n $ADH_APPS_NAMESPACE --force -f -
+./ops/apply.sh all
 ```
 
 > Previously, I had ArgoCD installed for GitOps, but I found it unnecessary due to the low frequency
