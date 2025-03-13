@@ -5,42 +5,17 @@ import psycopg2
 import json
 import sys
 from urllib.parse import urlparse
+from database import Database
 
 class Utils:
     def __init__(self):
+        self.database = Database()
         self.op_id = None
         self.op_start_time = None
         self.env = {
             'DEBUG': os.getenv('DEBUG', 'false').lower(),
             'DB_URI': os.getenv('DB_URI')
         }
-
-
-    def log(self, level, message, body=dict()):
-        # Skip if it's a debug message but debug is not enabled
-        if level == "debug" and self.env['DEBUG'] == "false":
-            return
-
-        if level == 'error':
-            stream = sys.stderr
-        else:
-            stream = sys.stdout
-
-        log_message = {
-            "level": level,
-            "operation_id": self.op_id,
-            "message": message,
-            "body": body
-        }
-
-        try:
-            log_json = json.dumps(log_message, separators=(',', ':'))
-            print(log_json, file=stream)
-        except (TypeError, ValueError) as e:
-            print(f'{{"level":"error","operation_id":"{self.op_id}","message":"Unable to log as JSON","body":{{"log_message":"{log_message}"}}}}', file=sys.stderr)
-
-        if level == "error":
-            sys.exit(1)
 
 
     def wait_for_database(self):
@@ -69,6 +44,33 @@ class Utils:
                 sleep_time = 5
                 self.log('info', 'Waiting for PostgreSQL to be available', {'sleep_time_seconds': sleep_time})
                 time.sleep(sleep_time)  # Wait x seconds before retrying
+
+
+    def log(self, level, message, body=dict()):
+        # Skip if it's a debug message but debug is not enabled
+        if level == "debug" and self.env['DEBUG'] == "false":
+            return
+
+        if level == 'error':
+            stream = sys.stderr
+        else:
+            stream = sys.stdout
+
+        log_message = {
+            "level": level,
+            "operation_id": self.op_id,
+            "message": message,
+            "body": body
+        }
+
+        try:
+            log_json = json.dumps(log_message, separators=(',', ':'))
+            print(log_json, file=stream)
+        except (TypeError, ValueError) as e:
+            print(f'{{"level":"error","operation_id":"{self.op_id}","message":"Unable to log as JSON","body":{{"log_message":"{log_message}"}}}}', file=sys.stderr)
+
+        if level == "error":
+            sys.exit(1)
 
 
     def operation_start(self):

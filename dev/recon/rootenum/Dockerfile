@@ -1,13 +1,13 @@
-FROM alpine:3.19.1
+FROM python:3.11-slim
 
-# Basic tools
-RUN apk add --no-cache bash coreutils curl wget sed jq unzip python3 uuidgen
+# Install Python dependencies
+COPY _requirements.txt /src/_requirements.txt
+RUN python3 -m pip install --no-cache-dir -r /src/_requirements.txt
 
-# Install python modules
-RUN apk add --no-cache py3-requests
-
+# Copy utils
 ENV UTILS=/src/_utils
 COPY _utils $UTILS
 
-COPY recon/rootenum/* /src/
-CMD /src/entrypoint.sh
+# Run app
+COPY recon/rootenum/app.py /src/app.py
+CMD ["python3", "/src/app.py"]

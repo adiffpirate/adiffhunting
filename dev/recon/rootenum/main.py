@@ -1,3 +1,4 @@
+from _utils.utils import Utils
 import requests
 import json
 import os
@@ -5,31 +6,37 @@ import subprocess
 import re
 import uuid
 
-# Get HackerOne API credentials from environment variables
-HACKERONE_USER = os.getenv('HACKERONE_USER')
-HACKERONE_TOKEN = os.getenv('HACKERONE_TOKEN')
-UTILS_PATH = os.getenv('UTILS')
+# Main function to handle pagination and collect all data
+def main():
+    utils = Utils()
+    utils.operation_start()
 
-if not HACKERONE_USER or not HACKERONE_TOKEN or not UTILS_PATH:
-    raise ValueError("HACKERONE_USER, HACKERONE_TOKEN, and UTILS environment variables must be set.")
+    # Get HackerOne API credentials from environment variables
+    HACKERONE_USER = os.getenv('HACKERONE_USER')
+    HACKERONE_TOKEN = os.getenv('HACKERONE_TOKEN')
+    UTILS_PATH = os.getenv('UTILS')
 
-LOG_SCRIPT = os.path.join(UTILS_PATH, "_log.sh")
+    if not HACKERONE_USER or not HACKERONE_TOKEN or not UTILS_PATH:
+        ValueError("HACKERONE_USER, HACKERONE_TOKEN, and UTILS environment variables must be set")
 
-# Read tld-list.txt located at the script directory
-with open(os.path.join(UTILS_PATH, 'tld-list.txt'), 'r') as tld_file:
-    tld_list = tld_file.read().splitlines()
+    # Read tld-list.txt located at the script directory
+    with open(os.path.join(UTILS_PATH, 'tld-list.txt'), 'r') as tld_file:
+        tld_list = tld_file.read().splitlines()
 
-# Function to log messages
-def log_message(level, message, **kwargs):
-    args = [f'{key}={value}' for key, value in kwargs.items()]
-    subprocess.run([LOG_SCRIPT, level, message] + args, check=True)
+    # Base URL for the API
+    BASE_URL = "https://api.hackerone.com/v1/hackers/programs"
+    final_data = []
+    url = BASE_URL
+    utils.log('info', 'Starting crawler')
 
-# Function to query database
-def query_database(query):
-    subprocess.run([os.path.join(UTILS_PATH, "query_dgraph.sh"), '-q', query], check=True)
+    while url:
+        data = fetch_data(url)
+        process_data(data['data'])
+        url = data['links'].get('next')
 
-# Base URL for the API
-BASE_URL = "https://api.hackerone.com/v1/hackers/programs"
+    utils.log('info', 'Crawling completed successfully')
+    utils.operation_end()
+
 
 # Function to fetch data from the HackerOne API
 def fetch_data(url):
@@ -37,6 +44,7 @@ def fetch_data(url):
     response = requests.get(url, auth=(HACKERONE_USER, HACKERONE_TOKEN), headers={'Accept': 'application/json'})
     response.raise_for_status()  # Raise an exception for HTTP errors
     return response.json()
+
 
 # Function to process the JSON data
 def process_data(data):
@@ -61,6 +69,7 @@ def process_data(data):
         # Parse domains
         process_structured_scopes(company_id, fetch_structured_scopes(company_id))
 
+
 # Function to fetch structured scopes for a given program
 def fetch_structured_scopes(handle):
     url = f"https://api.hackerone.com/v1/hackers/programs/{handle}/structured_scopes"
@@ -73,6 +82,7 @@ def fetch_structured_scopes(handle):
         url = data['links'].get('next')
 
     return structured_scopes
+
 
 # Function to process the structured scopes and extract domains
 def process_structured_scopes(company_id, scopes):
@@ -125,18 +135,6 @@ def process_structured_scopes(company_id, scopes):
 
     log_message('info', 'Processed all domains on scope')
 
-# Main function to handle pagination and collect all data
-def main():
-    final_data = []
-    url = BASE_URL
-    log_message('info', 'Starting crawler')
-
-    while url:
-        data = fetch_data(url)
-        process_data(data['data'])
-        url = data['links'].get('next')
-
-    log_message('info', 'Crawling completed successfully')
 
 if __name__ == "__main__":
     main()
