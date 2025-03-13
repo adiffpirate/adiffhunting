@@ -8,6 +8,9 @@ prometheus:
           resources:
             requests:
               storage: 10Gi
+    # Match all ServiceMonitors and PodMonitors on the cluster regardless of their labels
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
 
 prometheus-node-exporter:
   priorityClassName: system-node-critical

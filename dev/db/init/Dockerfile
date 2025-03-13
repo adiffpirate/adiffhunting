@@ -2,16 +2,14 @@
 FROM python:3.11-slim
 
 # Copy utils dir
-COPY _utils /src/_utils
+ENV UTILS=/src/_utils
+COPY _utils $UTILS
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r /src/_utils/requirements.txt
-
-# Set the working directory
-WORKDIR /app
+RUN python3 -m pip install --no-cache-dir -r $UTILS/_requirements.txt
 
 # Copy the application files
-COPY main.py .
+COPY db/init/app.py /src/
 
 # Run app
-CMD ["python", "main.py"]
+CMD ["python3", "/src/app.py"]

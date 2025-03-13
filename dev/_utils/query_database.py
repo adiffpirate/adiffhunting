@@ -241,19 +241,3 @@ def get_evidence(evidence_id):
 
 def get_all_evidences(limit=100):
     return session.query(Evidence).limit(limit).all()
-
-# ---------------------------
-# Example Usage
-# ---------------------------
-if __name__ == '__main__':
-    # Add a new company
-    company = add_company("Acme Corp", "https://acme.com", "BugBounty", True, "public")
-    print("Added company:", company.name)
-
-    # Add a domain associated with the company
-    domain = add_domain("example.com", level=1, type_="root", company_id=company.id)
-    print("Added domain:", domain.name)
-
-    # Retrieve and print all domains in random order (limit 100 by default)
-    domains = get_all_domains()
-    print("All domains (random order, limit 100):", [d.name for d in domains])

@@ -1,11 +1,10 @@
-# init_db.py
-
 import os
 from sqlalchemy import (
     create_engine, Column, Integer, String, Boolean, DateTime, ForeignKey,
     Table, Text, ARRAY, Index, func
 )
 from sqlalchemy.orm import relationship, backref, declarative_base
+from _utils._log import log
 
 Base = declarative_base()
 
@@ -80,8 +79,7 @@ class DnsRecord(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 
 # Create a GIN index for the array column (if needed)
-from sqlalchemy.dialects.postgresql import GIN
-Index('idx_dnsrecord_values', DnsRecord.values, postgresql_using='gin')
+Index('idx_dnsrecord_values', DnsRecord.values, postgresql_using="gin")
 
 class HttpResponse(Base):
     __tablename__ = 'http_response'
@@ -138,17 +136,12 @@ class Evidence(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 
 # --- Database Connection Using Environment Variables ---
-db_user = os.getenv("DB_USER")
-db_password = os.getenv("DB_PASSWORD")
-db_host = os.getenv("DB_HOST")
-db_port = os.getenv("DB_PORT")
-db_name = os.getenv("DB_NAME")
-
-engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
+DB_URI = os.getenv("DB_URI")
+engine = create_engine(DB_URI)
 
 def init_db():
     Base.metadata.create_all(engine)
-    print("Database schema created.")
+    log('info', 'none', 'Database schema created')
 
 if __name__ == '__main__':
     init_db()

@@ -35,7 +35,6 @@ fi
 
 # Run helm commands only if scope is set to "full"
 if [[ "$SCOPE" == "full" ]]; then
-  helm repo add dgraph https://charts.dgraph.io
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
   helm repo add grafana https://grafana.github.io/helm-charts
 	helm repo add cnpg https://cloudnative-pg.github.io/charts
@@ -43,16 +42,20 @@ if [[ "$SCOPE" == "full" ]]; then
 
   helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack \
     --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace \
-    --values $GIT_ROOT_DIR/ops/live/observability/prometheus-stack/values.yaml
+    --values $GIT_ROOT_DIR/ops/live/observability/prometheus-stack/values.yaml \
+    --version '69.8.2'
   helm upgrade --install promtail grafana/promtail \
     --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace \
-    --values $GIT_ROOT_DIR/ops/live/observability/promtail/values.yaml
+    --values $GIT_ROOT_DIR/ops/live/observability/promtail/values.yaml \
+    --version '6.16.6'
   helm upgrade --install loki grafana/loki \
     --namespace $ADH_OBSERVABILITY_NAMESPACE --create-namespace \
-    --values $GIT_ROOT_DIR/ops/live/observability/loki/values.yaml
+    --values $GIT_ROOT_DIR/ops/live/observability/loki/values.yaml \
+    --version '6.28.0'
 	helm upgrade --install cnpg cnpg/cloudnative-pg \
 		--namespace $ADH_APPS_NAMESPACE --create-namespace \
-    --values $GIT_ROOT_DIR/ops/live/adh-db/cloudnative-pg/values.yaml
+    --values $GIT_ROOT_DIR/ops/live/adh-db/cloudnative-pg/values.yaml \
+    --version '0.23.2'
 fi
 
 DEV_LOCAL_REGISTRY='localhost:5001'

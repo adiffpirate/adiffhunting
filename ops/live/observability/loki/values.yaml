@@ -33,6 +33,13 @@ loki:
     split_queries_by_interval: 15m
     max_query_parallelism: 32
 
+  # https://github.com/grafana/loki/issues/12138#issuecomment-2260590965
+  auth_enabled: false
+  commonConfig:
+    ring:
+      kvstore:
+        store: memberlist
+
 backend:
   replicas: 1
   persistence:

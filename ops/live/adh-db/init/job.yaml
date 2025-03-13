@@ -16,13 +16,14 @@ spec:
           env:
             - name: DEBUG
               value: "false"
-            - name: DGRAPH_ALPHA_HOST
-              value: "dgraph-alpha"
-            - name: DGRAPH_ALPHA_HTTP_PORT
-              value: "8080"
+            - name: DB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: adh-database-app
+                  key: uri
           resources:
             requests:
-              cpu: 10m
-              memory: 32Mi
+              cpu: 100m
+              memory: 128Mi
             limits:
-              memory: 32Mi
+              memory: 128Mi
