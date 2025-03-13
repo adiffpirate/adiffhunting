@@ -1,10 +1,10 @@
+from _utils.utils import Utils
 import os
 from sqlalchemy import (
     create_engine, Column, Integer, String, Boolean, DateTime, ForeignKey,
     Table, Text, ARRAY, Index, func
 )
 from sqlalchemy.orm import relationship, backref, declarative_base
-from _utils._log import log
 
 Base = declarative_base()
 
@@ -135,13 +135,15 @@ class Evidence(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 
-# --- Database Connection Using Environment Variables ---
-DB_URI = os.getenv("DB_URI")
-engine = create_engine(DB_URI)
-
 def init_db():
+    utils = Utils()
+    utils.operation_start()
+
+    engine = create_engine(utils.env['DB_URI'])
     Base.metadata.create_all(engine)
-    log('info', 'none', 'Database schema created')
+    utils.log('info', 'Database schema created')
+
+    utils.operation_end()
 
 if __name__ == '__main__':
     init_db()
