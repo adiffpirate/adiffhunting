@@ -63,7 +63,8 @@ DEV_IMAGE_TAG="${GIT_HASH}-dev-${EPOCH_TIMESTAMP}"
 
 # If profile is "dev", build and push local Docker images
 if [[ "$PROFILE" == "dev" ]]; then
-  find "$GIT_ROOT_DIR" -name 'Dockerfile' -type f | while read -r dockerfile; do
+  #find "$GIT_ROOT_DIR" -name 'Dockerfile' -type f | while read -r dockerfile; do
+  find "$GIT_ROOT_DIR" -name 'Dockerfile' -type f | grep -e 'db/init' | while read -r dockerfile; do
     # Extract app name from the two parent folders
     app_name=$(echo "$dockerfile" | awk -F'/' '{print $(NF-2) "-" $(NF-1)}')
 

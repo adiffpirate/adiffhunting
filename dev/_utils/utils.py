@@ -4,7 +4,7 @@ import os
 import psycopg2
 import json
 import sys
-from wait_for_database import wait_for_database
+from urllib.parse import urlparse
 
 class Utils:
     def __init__(self):
@@ -16,7 +16,7 @@ class Utils:
         }
 
 
-    def log(level, message, body=dict()):
+    def log(self, level, message, body=dict()):
         # Skip if it's a debug message but debug is not enabled
         if level == "debug" and self.env['DEBUG'] == "false":
             return
@@ -43,7 +43,7 @@ class Utils:
             sys.exit(1)
 
 
-    def wait_for_database():
+    def wait_for_database(self):
         """Wait for PostgreSQL to be available before continuing."""
         parsed_uri = urlparse(self.env['DB_URI'])
         db_name = parsed_uri.path[1:]  # Remove leading '/' from path
@@ -80,7 +80,7 @@ class Utils:
         # Generate operation ID
         self.op_id = str(uuid.uuid4())
         # Log operation start
-        log('info', 'Operation start')
+        self.log('info', 'Operation start')
         # Record initial time in milliseconds
         self.start_time = int(time.time() * 1000)
 
@@ -92,4 +92,4 @@ class Utils:
         # Calculate timespan
         timespan = end_time - self.start_time
         # Log operation end
-        log('info', 'Operation end', {'timespan_ms': timespan}')
+        self.log('info', 'Operation end', {'timespan_ms': timespan})
