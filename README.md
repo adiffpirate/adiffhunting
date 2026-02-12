@@ -11,26 +11,28 @@ to showcase my knowledge in Cloud DevOps Engineering for job interviews :stuck_o
 
 ## How to Run
 
-1. Save your [SOPS](https://github.com/getsops/sops) Age Private Key into `~/.config/sops/age/keys.txt`.
+### Development / Testing
 
+1. This will deploy everything locally with [kind](https://kind.sigs.k8s.io). Simply run:
+```sh
+./ops/apply.sh -e dev
+```
+
+2. To destroy the cluster once you're done run:
+```sh
+./ops/dev/delete_cluster.sh
+```
+
+### Production
+
+1. Save your [SOPS](https://github.com/getsops/sops) Age Private Key into `~/.config/sops/age/keys.txt`.
 > SOPS is used to securely expose this repository. All sensitive information is encrypted.
 
 2. Connect to a Kubernetes Cluster.
 
-3. Run the following command to install everything:
+3. Run:
 ```sh
 ./ops/apply.sh -e live
-```
-
-For development environments you can run:
-```sh
-./ops/apply.sh -e dev
-```
-> This will create a local cluster with [kind](https://kind.sigs.k8s.io) and deploy the apps to it (without observability).
-
-To destroy the cluster once you're done run:
-```sh
-./ops/dev/delete_cluster.sh
 ```
 
 > Previously, I had ArgoCD installed for GitOps, but I found it unnecessary due to the low frequency
