@@ -3,13 +3,42 @@ script_path=$(dirname "$0")
 set -eEo pipefail
 trap '>&2 $script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINENO"' ERR
 
+# ──────────────────────────────────────────────────────────────
+#  parse_urls.sh — URLs Parser
+#
+#  Reads URLs from standard input and outputs one JSON record
+#  per line (JSONLines format), suitable for database ingestion.
+#
+#  Usage:
+#    cat urls_list.txt | ./parse_urls.sh
+# ──────────────────────────────────────────────────────────────
+
+parse_protocol(){
+	protocol="$1"
+	domain="$2"
+
+	# Skip processing if protocol is empty
+	if [[ -z "$protocol" ]]; then
+		$script_path/_log.sh 'debug' 'Skipping protocol parsing due to it being empty' "protocol=$protocol" "domain=$domain"
+		return
+	fi
+
+	# Print parsed JSON (with subdomain if provided)
+	jq -nc "{
+		record_type: \"Protocol\",
+		record_data: {
+			name: \"$protocol\",
+			domains:[{name: \"$domain\"}]
+		}
+	}"
+}
+
 parse_domain(){
 	domain="$1"
 	subdomain="$2"
 
 	# Count the number of words delimeted by a dot
 	domain_level="$(echo "$domain" | awk -F. '{print NF}')"
-
 	# Get the parent domain (e.g. for "foo.example.com" the parent_domain is "example.com")
 	parent_domain="$(echo "$domain" | sed -E 's|^([^\.]+\.)(.+)$|\2|')"
 
@@ -22,15 +51,18 @@ parse_domain(){
 		domain_type='sub'
 	fi
 
+	# Calculate randomSeed as the md5 hash of the domain
+	domain_random_seed="$(echo "$domain" | md5sum | awk '{print $1}')"
+
 	# Print parsed JSON (with subdomain if provided)
 	jq -nc "{
 		record_type: \"Domain\",
 		record_data: {
 			name: \"$domain\",
 			type: \"$domain_type\",
-			level: \"$domain_level\",
+			level: $domain_level,
 			$(if [[ -n "$subdomain" ]]; then echo "subdomains:[{name: \"$subdomain\"}],"; fi)
-			randomSeed: \"$(uuidgen -r)\"
+			randomSeed: \"$domain_random_seed\"
 		}
 	}"
 
@@ -49,7 +81,7 @@ else
 fi
 
 # For each line
-$script_path/_log.sh 'info' 'Saving URLs into the database' "amount=$(echo "$URLS_LIST" | wc -l)"
+$script_path/_log.sh 'info' 'Parsing URLs from stdin' "amount=$(echo "$URLS_LIST" | wc -l)"
 for url in $URLS_LIST; do
 	# Breakdown url into capture groups using regex:
 	# Group \1 = full protocol including "://" (e.g. "http://" or "https://")
@@ -71,6 +103,7 @@ for url in $URLS_LIST; do
 	fi
 
 	$script_path/_log.sh 'debug' 'Parsing URL' "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
+	parse_protocol "$protocol" "$domain"
 	parse_domain "$domain"
 
 done

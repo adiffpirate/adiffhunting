@@ -31,25 +31,32 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		domains: [Domain] @hasInverse(field: company)
 	}
 
+	type Protocol {
+		id: ID!
+		name: String! @id @search(by: [hash, regexp])
+		domains: [Domain] @hasInverse(field: protocols)
+	}
+
 	type Domain {
 		id: ID!
 		name: String! @id @search(by: [hash, regexp])
 		level: Int @search
 		type: String @search(by: [hash, term])
-		company: Company @hasInverse(field: domains)
 		randomSeed: String @search(by: [hash]) # Workaround so we can query for random domains since dgraph doesnt have that built-in
+
 		subdomains: [Domain]
+		company: Company @hasInverse(field: domains)
+		protocols: [Protocol] @hasInverse(field: domains)
+		foundBy: [Tool] @hasInverse(field: subdomains)
+		dnsRecords: [DnsRecord] @hasInverse(field: domain)
+		httpResponses: [HttpResponse] @hasInverse(field: domain)
+		vulns: [Vuln] @hasInverse(field: domain)
 
 		skipScans: Boolean @search
 		lastPassiveEnumeration: DateTime @search(by: [hour])
 		lastActiveEnumeration: DateTime @search(by: [hour])
 		lastProbe: DateTime @search(by: [hour])
 		lastExploit: DateTime @search(by: [hour])
-
-		foundBy: [Tool] @hasInverse(field: subdomains)
-		dnsRecords: [DnsRecord] @hasInverse(field: domain)
-		httpResponses: [HttpResponse] @hasInverse(field: domain)
-		vulns: [Vuln] @hasInverse(field: domain)
 	}
 
 	type Tool {
