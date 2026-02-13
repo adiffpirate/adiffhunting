@@ -31,13 +31,16 @@ $script_path/_log.sh 'info' 'Adding records into the database' "amount=$(echo "$
 for record in $RECORDS_LIST; do
 	# Get record type and data
 	record_type="$(echo "$record" | jq -rc '.record_type')"
+	record_type_capitalized="${record_type^}"
+	record_type_uppercase="${record_type^^}"
+	record_type_lowercase="${record_type,,}"
 	record_data="$(echo "$record" | jq -rc '.record_data')"
 	# Add record on database
 	$script_path/query_dgraph.sh -q "
 		mutation {
-			add$record_type(input: [$record_data], upsert: true){
-				domain {
-					name
+			add$record_type_capitalized(input: [$record_data], upsert: true){
+				$record_type_lowercase {
+					id
 				}
 			}
 		}
