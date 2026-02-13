@@ -81,9 +81,11 @@ parse_domain(){
 	# Get the parent domain (e.g. for "foo.example.com" the parent_domain is "example.com")
 	local parent_domain="$(echo "$domain" | sed -E 's|^([^\.]+\.)(.+)$|\2|')"
 
-	# Determine domain type (tld, root or sub)
+	# Determine domain type (ip, tld, root or sub)
 	local domain_type=''
-	if grep -qw "$domain" $script_path/tld-list.txt; then # If domain is TLD
+	if echo "$domain" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}(:[0-9]*)?$'; then # If domain is IP
+		domain_type='ip'
+	elif grep -qw "$domain" $script_path/tld-list.txt; then # If domain is TLD (exact match a domain inside tls-list.txt)
 		domain_type='tld'
 	elif grep -qw "$parent_domain" $script_path/tld-list.txt; then # If domain is one level above TLD
 		domain_type='root'
@@ -94,20 +96,22 @@ parse_domain(){
 	# Calculate randomSeed as the md5 hash of the domain
 	local domain_random_seed="$(echo "$domain" | md5sum | awk '{print $1}')"
 
-	# Print parsed JSON (with subdomain if provided)
+	# Print parsed JSON with subdomain if provided
+	# (without 'level' if domain is actually an IP)
 	jq -nc "{
 		record_type: \"Domain\",
 		record_data: {
 			name: \"$domain\",
 			type: \"$domain_type\",
-			level: $domain_level,
+			$(if [[ "$domain_type" != "ip" ]]; then echo "level: $domain_level,"; fi)
 			$(if [[ -n "$subdomain" ]]; then echo "subdomains:[{name: \"$subdomain\"}],"; fi)
 			randomSeed: \"$domain_random_seed\"
 		}
 	}"
 
 	# Call this function recursively for the parent domains until it reachs TLD
-	if [[ "$domain_type" != "tld" ]]; then
+	# (also check domain_level as contingency to avoid infinite recursion if provided domain is weird/unexpected)
+	if [[ "$domain_type" != "ip" ]] && [[ "$domain_type" != "tld" ]] && [ $domain_level -gt 1 ]; then
 		parse_domain "$parent_domain" "$domain"
 	fi
 }
