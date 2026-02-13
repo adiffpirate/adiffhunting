@@ -47,6 +47,7 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		subdomains: [Domain]
 		company: Company @hasInverse(field: domains)
 		protocols: [Protocol] @hasInverse(field: domains)
+		paths: [Path] @hasInverse(field: domains)
 		foundBy: [Tool] @hasInverse(field: subdomains)
 		dnsRecords: [DnsRecord] @hasInverse(field: domain)
 		httpResponses: [HttpResponse] @hasInverse(field: domain)
@@ -57,6 +58,14 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		lastActiveEnumeration: DateTime @search(by: [hour])
 		lastProbe: DateTime @search(by: [hour])
 		lastExploit: DateTime @search(by: [hour])
+	}
+
+	type Path {
+		id: ID!
+		path: String! @id @search(by: [hash, regexp])
+		depth: Int @search
+		subpaths: [Path]
+		domains: [Domain] @hasInverse(field: paths)
 	}
 
 	type Tool {

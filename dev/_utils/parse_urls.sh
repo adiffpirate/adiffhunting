@@ -13,9 +13,48 @@ trap '>&2 $script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINE
 #    cat urls_list.txt | ./parse_urls.sh
 # ──────────────────────────────────────────────────────────────
 
+main(){
+	# Read input from stdin
+	if [[ -t 0 ]]; then
+		$script_path/_log.sh 'error' 'No URLs were provided on input via stdin'
+		exit 1
+	else
+		URLS_LIST="$(cat /dev/stdin)"
+	fi
+
+	# For each line
+	$script_path/_log.sh 'info' 'Parsing URLs from stdin' "amount=$(echo "$URLS_LIST" | wc -l)"
+	for url in $URLS_LIST; do
+		# Breakdown url into capture groups using regex:
+		# Group \1 = full protocol including "://" (e.g. "http://" or "https://")
+		# Group \2 = protocol only (e.g. "http" or "https")
+		# Group \3 = domain / host (e.g. "example.com")
+		# Group \4 = path (e.g. "/foo/bar")
+		# Group \5 = full query string including leading "?" (e.g. "?x=1&y=2")
+		# Group \6 = query string without "?" (e.g. "x=1&y=2")
+		local parser_regex='^((https?):\/\/)?([^\/?#]+)?([^?#]*)(\?([^#]*))?$'
+		local protocol="$(echo "$url" | sed -E "s|$parser_regex|\\2|")"
+		local domain="$(echo "$url" | sed -E "s|$parser_regex|\\3|")"
+		local path="$(echo "$url" | sed -E "s|$parser_regex|\\4|" | sed -E 's|/*$||')" # Remove trailing slash if present
+		local args="$(echo "$url" | sed -E "s|$parser_regex|\\6|")"
+
+		# Skip processing if URL is missing the domain
+		if [[ -z "$domain" ]]; then
+			$script_path/_log.sh 'warn' 'URL is missing the domain' "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
+			continue
+		fi
+
+		$script_path/_log.sh 'debug' 'Parsing URL' "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
+		parse_domain "$domain"
+		parse_protocol "$domain" "$protocol"
+		parse_path "$domain" "$path"
+
+	done
+}
+
 parse_protocol(){
-	protocol="$1"
-	domain="$2"
+	local domain="$1"
+	local protocol="$2"
 
 	# Skip processing if protocol is empty
 	if [[ -z "$protocol" ]]; then
@@ -34,15 +73,16 @@ parse_protocol(){
 }
 
 parse_domain(){
-	domain="$1"
-	subdomain="$2"
+	local domain="$1"
+	local subdomain="$2"
 
 	# Count the number of words delimeted by a dot
-	domain_level="$(echo "$domain" | awk -F. '{print NF}')"
+	local domain_level="$(echo "$domain" | awk -F. '{print NF}')"
 	# Get the parent domain (e.g. for "foo.example.com" the parent_domain is "example.com")
-	parent_domain="$(echo "$domain" | sed -E 's|^([^\.]+\.)(.+)$|\2|')"
+	local parent_domain="$(echo "$domain" | sed -E 's|^([^\.]+\.)(.+)$|\2|')"
 
 	# Determine domain type (tld, root or sub)
+	local domain_type=''
 	if grep -qw "$domain" $script_path/tld-list.txt; then # If domain is TLD
 		domain_type='tld'
 	elif grep -qw "$parent_domain" $script_path/tld-list.txt; then # If domain is one level above TLD
@@ -52,7 +92,7 @@ parse_domain(){
 	fi
 
 	# Calculate randomSeed as the md5 hash of the domain
-	domain_random_seed="$(echo "$domain" | md5sum | awk '{print $1}')"
+	local domain_random_seed="$(echo "$domain" | md5sum | awk '{print $1}')"
 
 	# Print parsed JSON (with subdomain if provided)
 	jq -nc "{
@@ -72,38 +112,37 @@ parse_domain(){
 	fi
 }
 
-# Read input from stdin
-if [[ -t 0 ]]; then
-	$script_path/_log.sh 'error' 'No URLs were provided on input via stdin'
-	exit 1
-else
-	URLS_LIST="$(cat /dev/stdin)"
-fi
+parse_path(){
+	local domain="$1"
+	local path="$2"
+	local subpath="$3"
 
-# For each line
-$script_path/_log.sh 'info' 'Parsing URLs from stdin' "amount=$(echo "$URLS_LIST" | wc -l)"
-for url in $URLS_LIST; do
-	# Breakdown url into capture groups using regex:
-	# Group \1 = full protocol including "://" (e.g. "http://" or "https://")
-	# Group \2 = protocol only (e.g. "http" or "https")
-	# Group \3 = domain / host (e.g. "example.com")
-	# Group \4 = path (e.g. "/foo/bar")
-	# Group \5 = full query string including leading "?" (e.g. "?x=1&y=2")
-	# Group \6 = query string without "?" (e.g. "x=1&y=2")
-	parser_regex='^((https?):\/\/)?([^\/?#]+)?([^?#]*)(\?([^#]*))?$'
-	protocol="$(echo "$url" | sed -E "s|$parser_regex|\\2|")"
-	domain="$(echo "$url" | sed -E "s|$parser_regex|\\3|")"
-	path="$(echo "$url" | sed -E "s|$parser_regex|\\4|")"
-	args="$(echo "$url" | sed -E "s|$parser_regex|\\6|")"
-
-	# Skip processing if URL is missing the domain
-	if [[ -z "$domain" ]]; then
-		$script_path/_log.sh 'warn' 'URL is missing the domain' "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
-		continue
+	# Stop processing if path is empty or root
+	if [[ -z "$path" ]] || [[ "$path" == "/" ]]; then
+		return
 	fi
 
-	$script_path/_log.sh 'debug' 'Parsing URL' "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
-	parse_protocol "$protocol" "$domain"
-	parse_domain "$domain"
+	# Count the number of slashes
+	local path_depth="$(echo "$path" | grep -o '/' | wc -l)"
+	# Get the parent path (e.g. for "/foo/bar" the parent_path is "/foo")
+	local parent_path="$(echo "$path" | sed -E 's|^(\/.+)(\/[^\/]*)$|\1|')"
 
-done
+	# Print parsed JSON (with subpath if provided)
+	jq -nc "{
+		record_type: \"Path\",
+		record_data: {
+			path: \"$path\",
+			depth: $path_depth,
+			domains: [{name: \"$domain\"}],
+			$(if [[ -n "$subpath" ]]; then echo "subpaths:[{path: \"$subpath\"}]"; fi)
+		}
+	}"
+
+	# Call this function recursively for subpaths
+	# if [ $path_depth -gt 1 ]; then
+	# 	parse_path "$domain" "$parent_path" "$path"
+	# fi
+}
+
+# Call main function
+main
