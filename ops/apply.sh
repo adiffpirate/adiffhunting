@@ -37,7 +37,7 @@ if [[ "$ADH_OPS_ENV" == "dev" ]]; then
   DEV_IMAGE_TAG="${GIT_HASH}-dev-${EPOCH_TIMESTAMP}"
 
   # Build and push local Docker images, filtering for only the apps used on the environment
-  find "$GIT_ROOT_DIR" -name 'Dockerfile' -type f | grep "$(find ops/$ADH_OPS_ENV -mindepth 2 -type d | awk -F/ '{print $NF}')" | while read -r dockerfile; do
+  find "$GIT_ROOT_DIR" -name 'Dockerfile' -type f | grep "$(find "$GIT_ROOT_DIR/ops/$ADH_OPS_ENV" -mindepth 2 -type d | awk -F/ '{print $NF}')" | while read -r dockerfile; do
     # Extract app name from the two parent folders
     app_name=$(echo "$dockerfile" | awk -F'/' '{print $(NF-2) "-" $(NF-1)}')
 
@@ -55,7 +55,7 @@ helm repo add dgraph https://charts.dgraph.io
 helm repo update
 helm upgrade --install dgraph dgraph/dgraph \
   --namespace $ADH_APPS_NAMESPACE --create-namespace \
-  --values ops/$ADH_OPS_ENV/adh-db/dgraph/values.yaml \
+  --values $GIT_ROOT_DIR/ops/$ADH_OPS_ENV/adh-db/dgraph/values.yaml \
   --version '24.1.4' --set "image.tag=v25.2.0"
 
 # Only deploy observability on non-dev environments
