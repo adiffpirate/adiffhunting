@@ -33,7 +33,7 @@ fi
 query_result=$(mktemp)
 $script_path/query_dgraph.sh -o $query_result -t dql -q "{
 	results(func: gt(Vuln.updatedAt, \"$(date -Iseconds -d "-$past_time")\")) {
-		Vuln.name,
+		Vuln.value,
 		Vuln.updatedAt,
 		Vuln.description,
 		Vuln.evidence { expand(_all_) }

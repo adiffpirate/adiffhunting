@@ -47,7 +47,7 @@ $script_path/query_dgraph.sh -o $query_result -t dql -q "
 		results(func: uid(domain), orderasc: Domain.randomSeed $(if [ -n "$args" ]; then echo ",$args"; fi))
 		@filter(not eq(Domain.skipScans, true) $(if [ -n "$filter" ]; then echo "and $filter"; fi))
 		{
-			Domain.name,
+			Domain.value,
 			Domain.dnsRecords @filter(uid(record)) {
 				DnsRecord.type, DnsRecord.values
 			}
@@ -56,4 +56,4 @@ $script_path/query_dgraph.sh -o $query_result -t dql -q "
 "
 
 # Try to parse records from output. If it fails, print the whole query output to stderr
-jq -c -r '.data.results | .[] | ."Domain.name" as $domain | ."Domain.dnsRecords" | .[] | ."DnsRecord.type" as $type | ."DnsRecord.values" | .[] | [$domain, $type, .] | join(" ")' $query_result 2>/dev/null || >&2 jq -c '.' $query_result
+jq -c -r '.data.results | .[] | ."Domain.value" as $domain | ."Domain.dnsRecords" | .[] | ."DnsRecord.type" as $type | ."DnsRecord.values" | .[] | [$domain, $type, .] | join(" ")' $query_result 2>/dev/null || >&2 jq -c '.' $query_result

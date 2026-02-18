@@ -28,10 +28,10 @@ while getopts ":h?f:c:d:v:" opt; do
 done
 
 if [ -n "$domain" ]; then
-	filter="eq(Domain.name, \"$domain\")"
+	filter="eq(Domain.value, \"$domain\")"
 	children='Domain.subdomains, Domain.dnsRecords, Domain.vulns'
 elif [ -n "$vuln" ]; then
-	filter="eq(Vuln.name, \"$vuln\")"
+	filter="eq(Vuln.value, \"$vuln\")"
 	children='Vuln.evidence'
 fi
 

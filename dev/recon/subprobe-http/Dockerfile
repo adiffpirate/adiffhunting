@@ -14,5 +14,7 @@ RUN wget https://github.com/projectdiscovery/httpx/releases/download/v${HTTPX_VE
 ENV UTILS=/src/_utils
 COPY _utils $UTILS
 
+ENV SCAN_COOLDOWN="1 hour"
+
 COPY recon/subprobe-http/* /src/
 CMD /src/entrypoint.sh

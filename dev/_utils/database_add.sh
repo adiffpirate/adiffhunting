@@ -9,9 +9,9 @@ trap '>&2 $script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINE
 #  Reads JSONLines generic database records from standard input
 #  and add them to the database. Input should be like the example below:
 #
-#  {"record_type":"Domain","record_data":{"name":"foo.example.com",...}}
-#  {"record_type":"Domain","record_data":{"name":"example.com",...}}
-#  {"record_type":"Domain","record_data":{"name":"com",...}}
+#  {"record_type":"Domain","record_data":{"value":"foo.example.com",...}}
+#  {"record_type":"Domain","record_data":{"value":"example.com",...}}
+#  {"record_type":"Domain","record_data":{"value":"com",...}}
 #
 #  Usages:
 #    cat generic_records.json | ./database_add.sh

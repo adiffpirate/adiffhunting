@@ -38,8 +38,8 @@ tail -n '+2' $records_csv_file | while read line; do
 	# Append to list of JSONs
 	list="$(jq ". += [
 		{
-			\"name\": \"$record_type: $domain\",
-			\"domain\": { \"name\": \"$domain\" },
+			\"value\": \"$record_type: $domain\",
+			\"domain\": { \"value\": \"$domain\" },
 			\"type\": \"$record_type\",
 			\"values\": $values,
 			\"updatedAt\": \"$now\"
@@ -54,7 +54,7 @@ echo "
 		addDnsRecord(input: $(cat $records_json_file), upsert: true){
 			dnsRecord {
 				domain {
-					name
+					value
 				},
 				type,
 				values

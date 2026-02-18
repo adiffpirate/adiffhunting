@@ -25,7 +25,7 @@ Count subdomains without 'lastProbe' field
 Get companies
 ```sh
 ./query_dgraph.sh -o /dev/stdout -t dql -q '{
-    result(func: has(Company.name)) @recurse(depth: 2) {
+    result(func: has(Company.value)) @recurse(depth: 2) {
         expand(_all_)
     }
 }'
@@ -51,7 +51,7 @@ Get domains with level greater than 5 that have a CNAME record
         domain as DnsRecord.domain
     }
     results(func: uid(domain)) @filter(gt(Domain.level, 5)) {
-        Domain.name,
+        Domain.value,
         Domain.dnsRecords @filter(uid(record)) {
             DnsRecord.type, DnsRecord.values
         }

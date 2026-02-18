@@ -41,7 +41,7 @@ cat $domains_json_file | while read line; do
 		mutation {
 			addDomain(input: [$line], upsert: true){
 				domain {
-					name
+					value
 				}
 			}
 		}

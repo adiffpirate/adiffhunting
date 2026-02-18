@@ -28,7 +28,7 @@ done
 query_result=$(mktemp)
 
 if [ -n "$domain" ]; then
-	regex_filter="regexp(Domain.name, /^.*\\\\.$domain$/)"
+	regex_filter="regexp(Domain.value, /^.*\\\\.$domain$/)"
 	if [ -n "$filter" ]; then
 		filter="$regex_filter and $filter"
 	else
@@ -41,10 +41,10 @@ $script_path/query_dgraph.sh -o $query_result -t dql -q "
 		results(func: anyofterms(Domain.type, \"root sub\"), orderasc: Domain.randomSeed $(if [ -n "$args" ]; then echo ",$args"; fi))
 		@filter(not eq(Domain.skipScans, true) $(if [ -n "$filter" ]; then echo "and $filter"; fi))
 		{
-			Domain.name
+			Domain.value
 		}
 	}
 "
 
 # Try to get domains. If it fails, print the query output to stderr
-jq -c -r '.data.results | .[] | ."Domain.name"' $query_result 2>/dev/null || >&2 jq -c '.' $query_result
+jq -c -r '.data.results | .[] | ."Domain.value"' $query_result 2>/dev/null || >&2 jq -c '.' $query_result

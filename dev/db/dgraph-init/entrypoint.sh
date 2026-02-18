@@ -23,7 +23,7 @@ $UTILS/_log.sh 'info' "Creating Schemas"
 curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema --data '
 	type Company {
 		id: ID!
-		name: String! @id @search(by: [hash, regexp])
+		value: String! @id @search(by: [hash, regexp])
 		programPage: String
 		programPlatform: String @search(by: [hash, term])
 		canHack: Boolean @search
@@ -31,26 +31,18 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		domains: [Domain] @hasInverse(field: company)
 	}
 
-	type Protocol {
-		id: ID!
-		name: String! @id @search(by: [hash, regexp])
-		domains: [Domain] @hasInverse(field: protocols)
-	}
-
 	type Domain {
 		id: ID!
-		name: String! @id @search(by: [hash, regexp])
+		value: String! @id @search(by: [hash, regexp])
 		level: Int @search
 		type: String @search(by: [hash, term])
 		randomSeed: String @search(by: [hash]) # Workaround so we can query for random domains since dgraph doesnt have that built-in
 
 		subdomains: [Domain]
 		company: Company @hasInverse(field: domains)
-		protocols: [Protocol] @hasInverse(field: domains)
-		paths: [Path] @hasInverse(field: domains)
 		foundBy: [Tool] @hasInverse(field: subdomains)
+		urls: [Url] @hasInverse(field: domain)
 		dnsRecords: [DnsRecord] @hasInverse(field: domain)
-		httpResponses: [HttpResponse] @hasInverse(field: domain)
 		vulns: [Vuln] @hasInverse(field: domain)
 
 		skipScans: Boolean @search
@@ -60,17 +52,37 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 		lastExploit: DateTime @search(by: [hour])
 	}
 
+	type Url {
+		id: ID!
+		value: String! @id @search(by: [hash, regexp])
+		randomSeed: String @search(by: [hash]) # Workaround so we can query for random domains since dgraph doesnt have that built-in
+
+		protocol: Protocol @hasInverse(field: urls)
+		domain: Domain @hasInverse(field: urls)
+		path: Path @hasInverse(field: urls)
+		httpResponses: [HttpResponse] @hasInverse(field: url)
+
+		lastProbe: DateTime @search(by: [hour])
+		lastExploit: DateTime @search(by: [hour])
+	}
+
+	type Protocol {
+		id: ID!
+		value: String! @id @search(by: [hash, regexp])
+		urls: [Url] @hasInverse(field: protocol)
+	}
+
 	type Path {
 		id: ID!
-		path: String! @id @search(by: [hash, regexp])
+		value: String! @id @search(by: [hash, regexp])
 		depth: Int @search
 		subpaths: [Path]
-		domains: [Domain] @hasInverse(field: paths)
+		urls: [Url] @hasInverse(field: path)
 	}
 
 	type Tool {
 		id: ID!
-		name: String! @id @search(by: [hash, regexp])
+		value: String! @id @search(by: [hash, regexp])
 		type: String @search(by: [hash, regexp])
 		subdomains: [Domain] @hasInverse(field: foundBy)
 		vulns: [Vuln] @hasInverse(field: foundBy)
@@ -78,7 +90,7 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 
 	type DnsRecord {
 		id: ID!
-		name: String! @id @search(by: [hash, regexp])
+		value: String! @id @search(by: [hash, regexp])
 		domain: Domain @hasInverse(field: dnsRecords)
 		type: String @search(by: [hash, term])
 		values: [String] @search(by: [hash, regexp])
@@ -87,10 +99,9 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 
 	type HttpResponse {
 		id: ID!
-		name: String! @id @search(by: [hash, regexp])
-		domain: Domain @hasInverse(field: httpResponses)
-		url: String  @search(by: [hash, regexp])
-		scheme: String @search(by: [hash, term])
+		value: String! @id @search(by: [hash, regexp])
+		url: Url @hasInverse(field: httpResponses)
+
 		method: String @search(by: [hash, term])
 		statusCode: Int @search
 		category: String @search(by: [hash, term])
@@ -102,7 +113,7 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 
 	type Vuln {
 		id: ID!
-		name: String! @id @search(by: [hash, regexp])
+		value: String! @id @search(by: [hash, regexp])
 		domain: Domain @hasInverse(field: vulns)
 		title: String @search(by: [hash, regexp])
 		class: VulnClass @hasInverse(field: vulns)
@@ -117,7 +128,7 @@ curl --no-progress-meter $DGRAPH_ALPHA_HOST:$DGRAPH_ALPHA_HTTP_PORT/admin/schema
 
 	type VulnClass {
 		id: ID!
-		name: String! @id @search(by: [hash, regexp])
+		value: String! @id @search(by: [hash, regexp])
 		vulns: [Vuln] @hasInverse(field: class)
 	}
 

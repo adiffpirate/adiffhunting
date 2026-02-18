@@ -13,6 +13,10 @@ trap '>&2 $script_path/_stacktrace.sh "$?" "$BASH_SOURCE" "$BASH_COMMAND" "$LINE
 #    cat urls_list.txt | ./parse_urls.sh
 # ──────────────────────────────────────────────────────────────
 
+REGEX_URL_PARSER='^((.*):\/\/)?([^\/?#]+)?([^?#]*)(\?([^#]*))?$'
+REGEX_IP_DOMAIN='^([0-9]{1,3}\.){3}[0-9]{1,3}(:[0-9]*)?$' # Allow port
+REGEX_VALID_DNS='^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:[0-9]*)?$' # Allow port
+
 main(){
 	# Read input from stdin
 	if [[ -t 0 ]]; then
@@ -32,42 +36,76 @@ main(){
 		# Group \4 = path (e.g. "/foo/bar")
 		# Group \5 = full query string including leading "?" (e.g. "?x=1&y=2")
 		# Group \6 = query string without "?" (e.g. "x=1&y=2")
-		local parser_regex='^((https?):\/\/)?([^\/?#]+)?([^?#]*)(\?([^#]*))?$'
-		local protocol="$(echo "$url" | sed -E "s|$parser_regex|\\2|")"
-		local domain="$(echo "$url" | sed -E "s|$parser_regex|\\3|")"
-		local path="$(echo "$url" | sed -E "s|$parser_regex|\\4|" | sed -E 's|/*$||')" # Remove trailing slash if present
-		local args="$(echo "$url" | sed -E "s|$parser_regex|\\6|")"
+		local protocol_full="$(echo "$url" | sed -E "s|$REGEX_URL_PARSER|\\1|")"
+		local protocol="$(echo "$url" | sed -E "s|$REGEX_URL_PARSER|\\2|")"
+		local domain="$(echo "$url" | sed -E "s|$REGEX_URL_PARSER|\\3|")"
+		local path="$(echo "$url" | sed -E "s|$REGEX_URL_PARSER|\\4|" | sed -E 's|/*$||')" # Remove trailing slash if present
+		local args_full="$(echo "$url" | sed -E "s|$REGEX_URL_PARSER|\\5|")"
+		local args="$(echo "$url" | sed -E "s|$REGEX_URL_PARSER|\\6|")"
 
 		# Skip processing if URL is missing the domain
 		if [[ -z "$domain" ]]; then
-			$script_path/_log.sh 'warn' 'URL is missing the domain' "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
+			$script_path/_log.sh 'warn' 'URL is missing the domain' "url=$url" "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
 			continue
 		fi
 
-		$script_path/_log.sh 'debug' 'Parsing URL' "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
+		# Skip processing if domain is invalid
+		if [[ ! $domain =~ $REGEX_VALID_DNS ]] && [[ ! $domain =~ $REGEX_IP_DOMAIN ]]; then
+			$script_path/_log.sh 'warn' 'Domain is invalid' "url=$url" "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
+			continue
+		fi
+
+		# Normalize URL
+		url_normalized="${protocol_full}${domain}${path}${args_full}"
+
+		$script_path/_log.sh 'debug' 'Parsing URL' "url=$url" "protocol=$protocol" "domain=$domain" "path=$path" "args=$args"
+		parse_url "$url_normalized" "$protocol" "$domain" "$path" "$args"
 		parse_domain "$domain"
-		parse_protocol "$domain" "$protocol"
-		parse_path "$domain" "$path"
+		parse_protocol "$url_normalized" "$protocol"
+		parse_path "$url_normalized" "$path"
 
 	done
 }
 
+parse_url(){
+	local url="$1"
+	local protocol="$2"
+	local domain="$3"
+	local path="$4"
+	local args="$5"
+
+	# Calculate randomSeed as the md5 hash of the url
+	local url_random_seed="$(echo "$url" | md5sum | awk '{print $1}')"
+
+	# Print parsed JSON
+	jq -nc "{
+		record_type: \"Url\",
+		record_data: {
+			value: \"$url\",
+			$(if [[ -n "$protocol" ]]; then echo "protocol: {value: \"$protocol\"},"; fi)
+			domain: {value: \"$domain\"},
+			$(if [[ -n "$path" ]]; then echo "path: {value: \"$path\"},"; fi)
+			randomSeed: \"$url_random_seed\"
+		}
+	}"
+}
+
 parse_protocol(){
-	local domain="$1"
+	local url="$1"
 	local protocol="$2"
 
 	# Skip processing if protocol is empty
 	if [[ -z "$protocol" ]]; then
-		$script_path/_log.sh 'debug' 'Skipping protocol parsing due to it being empty' "protocol=$protocol" "domain=$domain"
+		$script_path/_log.sh 'debug' 'Skipping protocol parsing due to it being empty' "url=$url" "protocol=$protocol"
 		return
 	fi
 
-	# Print parsed JSON (with subdomain if provided)
+	# Print parsed JSON
 	jq -nc "{
 		record_type: \"Protocol\",
 		record_data: {
-			name: \"$protocol\",
-			domains:[{name: \"$domain\"}]
+			value: \"$protocol\",
+			urls: [{value: \"$url\"}]
 		}
 	}"
 }
@@ -83,7 +121,7 @@ parse_domain(){
 
 	# Determine domain type (ip, tld, root or sub)
 	local domain_type=''
-	if echo "$domain" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}(:[0-9]*)?$'; then # If domain is IP
+	if echo "$domain" | grep -Eq "$REGEX_IP_DOMAIN"; then # If domain is IP
 		domain_type='ip'
 	elif grep -qw "$domain" $script_path/tld-list.txt; then # If domain is TLD (exact match a domain inside tls-list.txt)
 		domain_type='tld'
@@ -101,10 +139,10 @@ parse_domain(){
 	jq -nc "{
 		record_type: \"Domain\",
 		record_data: {
-			name: \"$domain\",
+			value: \"$domain\",
 			type: \"$domain_type\",
 			$(if [[ "$domain_type" != "ip" ]]; then echo "level: $domain_level,"; fi)
-			$(if [[ -n "$subdomain" ]]; then echo "subdomains:[{name: \"$subdomain\"}],"; fi)
+			$(if [[ -n "$subdomain" ]]; then echo "subdomains:[{value: \"$subdomain\"}],"; fi)
 			randomSeed: \"$domain_random_seed\"
 		}
 	}"
@@ -117,12 +155,12 @@ parse_domain(){
 }
 
 parse_path(){
-	local domain="$1"
+	local url="$1"
 	local path="$2"
 	local subpath="$3"
 
-	# Stop processing if path is empty or root
-	if [[ -z "$path" ]] || [[ "$path" == "/" ]]; then
+	# Stop processing if path is empty
+	if [[ -z "$path" ]]; then
 		return
 	fi
 
@@ -135,16 +173,16 @@ parse_path(){
 	jq -nc "{
 		record_type: \"Path\",
 		record_data: {
-			path: \"$path\",
+			value: \"$path\",
 			depth: $path_depth,
-			domains: [{name: \"$domain\"}],
-			$(if [[ -n "$subpath" ]]; then echo "subpaths:[{path: \"$subpath\"}]"; fi)
+			urls: [{value: \"$url\"}],
+			$(if [[ -n "$subpath" ]]; then echo "subpaths:[{value: \"$subpath\"}]"; fi)
 		}
 	}"
 
 	# Call this function recursively for subpaths
 	# if [ $path_depth -gt 1 ]; then
-	# 	parse_path "$domain" "$parent_path" "$path"
+	# 	parse_path "$url" "$parent_path" "$path"
 	# fi
 }
 
